@@ -55,6 +55,17 @@ export default function MenuModal({
   });
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [folders, setFolders] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      const fetchFolders = async () => {
+        const { data } = await supabase.from('folders').select('name').order('name');
+        if (data) setFolders(data.map(f => f.name));
+      };
+      fetchFolders();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (menu) {
@@ -192,12 +203,24 @@ export default function MenuModal({
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">Folder (Kategori)</label>
-                    <Input 
-                      required 
-                      value={formData.category} 
-                      onChange={e => setFormData({...formData, category: e.target.value})} 
-                      placeholder="Contoh: Sambal Merah"
-                    />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" variant="outline" className="w-full justify-between font-normal bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                          {formData.category || 'Tanpa Folder'}
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[200px] max-h-60 overflow-y-auto" align="start" style={{ zIndex: 105 }}>
+                        <DropdownMenuItem onClick={() => setFormData({...formData, category: ""})} className="cursor-pointer">
+                          Tanpa Folder
+                        </DropdownMenuItem>
+                        {folders.map(folder => (
+                          <DropdownMenuItem key={folder} onClick={() => setFormData({...formData, category: folder})} className="cursor-pointer">
+                            {folder}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
                 
