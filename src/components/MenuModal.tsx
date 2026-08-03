@@ -259,18 +259,22 @@ export default function MenuModal({
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
-                    <label className="block text-sm font-medium mb-1">Level Pedas (0-5)</label>
-                    <Input 
-                      required 
-                      type="text"
-                      value={formData.spicy_level !== undefined ? formData.spicy_level : ""} 
-                      onChange={e => {
-                        const val = e.target.value.replace(/\D/g, '');
-                        let num = Number(val);
-                        if (num > 5) num = 5;
-                        setFormData({...formData, spicy_level: num});
-                      }} 
-                    />
+                    <label className="block text-sm font-medium mb-1">Level Pedas</label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" variant="outline" className="w-full justify-between font-normal bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                          {formData.spicy_level !== undefined ? `Level ${formData.spicy_level}` : 'Pilih Level'}
+                          <ChevronDown className="h-4 w-4 opacity-50" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[200px]" align="start" style={{ zIndex: 105 }}>
+                        {[0, 1, 2, 3, 4, 5].map(level => (
+                          <DropdownMenuItem key={level} onClick={() => setFormData({...formData, spicy_level: level})} className="cursor-pointer">
+                            Level {level}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">Status</label>
