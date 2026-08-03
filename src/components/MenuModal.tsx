@@ -202,7 +202,7 @@ export default function MenuModal({
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-sm font-medium mb-1">Folder (Kategori)</label>
+                    <label className="block text-sm font-medium mb-1">Folder</label>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button type="button" variant="outline" className="w-full justify-between font-normal bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900">
