@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Lock, User, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,20 +15,30 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.push("/dashboard");
+      }
+    });
+  }, [router]);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulasi Login
-    setTimeout(() => {
-      if (email === "admin@cumita.com" && password === "admin123") {
-        toast.success("Login berhasil!");
-        router.push("/dashboard");
-      } else {
-        toast.error("Email atau password salah!");
-        setLoading(false);
-      }
-    }, 1200);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      toast.error("Email atau password salah!");
+      setLoading(false);
+    } else {
+      toast.success("Login berhasil!");
+      router.push("/dashboard");
+    }
   };
 
   return (

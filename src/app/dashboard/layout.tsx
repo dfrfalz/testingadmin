@@ -37,8 +37,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/login");
+      } else {
+        setIsLoadingAuth(false);
+      }
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        router.push("/login");
+      }
+    });
+
     // Real-time subscription untuk pesanan baru
     const channel = supabase
       .channel('layout-orders-channel')
@@ -56,13 +73,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return () => {
       supabase.removeChannel(channel);
+      subscription.unsubscribe();
     };
   }, [router]);
 
-  const handleLogout = () => {
-    // Simulasi logout
-    router.push("/");
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
   };
+
+  if (isLoadingAuth) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950">
