@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Download, Mail } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, Filter, Download, Mail, Users, ShoppingBag, DollarSign } from "lucide-react";
 import { formatIDR } from "@/lib/utils";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -21,52 +22,99 @@ type CustomerData = {
   status: string;
 };
 
+type OrderData = {
+  id: string;
+  customer_whatsapp: string;
+  customer_name: string;
+  customer_email: string;
+  total: number;
+  created_at: string;
+};
+
 export default function PelangganPage() {
-  const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [allOrders, setAllOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [timeFilter, setTimeFilter] = useState("semua");
 
   useEffect(() => {
-    const fetchCustomers = async () => {
+    const fetchOrders = async () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, customer_whatsapp, customer_name, customer_email, total, created_at')
         .order('created_at', { ascending: true });
 
       if (!error && data) {
-        const customerMap = new Map<string, CustomerData>();
-
-        data.forEach(order => {
-          const phone = order.customer_whatsapp;
-          if (!customerMap.has(phone)) {
-            customerMap.set(phone, {
-              phone: phone,
-              name: order.customer_name,
-              email: order.customer_email || "-",
-              joinDate: order.created_at, // First order date
-              totalOrders: 1,
-              totalSpent: Number(order.total),
-              status: "Aktif",
-            });
-          } else {
-            const existing = customerMap.get(phone)!;
-            existing.totalOrders += 1;
-            existing.totalSpent += Number(order.total);
-            if (existing.totalOrders >= 5 || existing.totalSpent >= 500000) {
-              existing.status = "VIP";
-            }
-          }
-        });
-
-        const sortedCustomers = Array.from(customerMap.values()).sort((a, b) => b.totalSpent - a.totalSpent);
-        setCustomers(sortedCustomers);
+        setAllOrders(data);
       }
       setLoading(false);
     };
 
-    fetchCustomers();
+    fetchOrders();
   }, []);
+
+  const { customers, stats } = useMemo(() => {
+    let filteredOrders = allOrders;
+    const now = new Date();
+    
+    // Filter by time
+    if (timeFilter !== "semua") {
+      filteredOrders = allOrders.filter(order => {
+        const orderDate = new Date(order.created_at);
+        if (timeFilter === "hari") {
+          return orderDate.toDateString() === now.toDateString();
+        } else if (timeFilter === "minggu") {
+          const firstDay = new Date(now.setDate(now.getDate() - now.getDay()));
+          firstDay.setHours(0,0,0,0);
+          return orderDate >= firstDay;
+        } else if (timeFilter === "bulan") {
+          return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+        } else if (timeFilter === "tahun") {
+          return orderDate.getFullYear() === now.getFullYear();
+        }
+        return true;
+      });
+    }
+
+    const customerMap = new Map<string, CustomerData>();
+    let totalRevenue = 0;
+
+    filteredOrders.forEach(order => {
+      totalRevenue += Number(order.total);
+      const phone = order.customer_whatsapp;
+      
+      if (!customerMap.has(phone)) {
+        customerMap.set(phone, {
+          phone: phone,
+          name: order.customer_name,
+          email: order.customer_email || "-",
+          joinDate: order.created_at, // First order date in this period
+          totalOrders: 1,
+          totalSpent: Number(order.total),
+          status: "Aktif",
+        });
+      } else {
+        const existing = customerMap.get(phone)!;
+        existing.totalOrders += 1;
+        existing.totalSpent += Number(order.total);
+        if (existing.totalOrders >= 5 || existing.totalSpent >= 500000) {
+          existing.status = "VIP";
+        }
+      }
+    });
+
+    const sortedCustomers = Array.from(customerMap.values()).sort((a, b) => b.totalSpent - a.totalSpent);
+    
+    return {
+      customers: sortedCustomers,
+      stats: {
+        totalCustomers: customerMap.size,
+        totalOrders: filteredOrders.length,
+        totalRevenue: totalRevenue
+      }
+    };
+  }, [allOrders, timeFilter]);
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -79,13 +127,58 @@ export default function PelangganPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Data Pelanggan</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Lihat dan kelola semua pelanggan yang pernah memesan di Cumita.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Lihat dan kelola statistik pelanggan yang pernah memesan di Cumita.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Tabs value={timeFilter} onValueChange={setTimeFilter} className="w-full sm:w-auto">
+            <TabsList>
+              <TabsTrigger value="semua">Semua</TabsTrigger>
+              <TabsTrigger value="hari">Hari Ini</TabsTrigger>
+              <TabsTrigger value="minggu">Minggu Ini</TabsTrigger>
+              <TabsTrigger value="bulan">Bulan Ini</TabsTrigger>
+              <TabsTrigger value="tahun">Tahun Ini</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" /> Export
           </Button>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">
+              <Users className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Total Pelanggan</p>
+              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{stats.totalCustomers}</h3>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-full">
+              <ShoppingBag className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Total Pesanan</p>
+              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{stats.totalOrders}</h3>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full">
+              <DollarSign className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Total Belanja (IDR)</p>
+              <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{formatIDR(stats.totalRevenue)}</h3>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -99,11 +192,6 @@ export default function PelangganPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
-                <Filter className="h-4 w-4" /> Filter
-              </Button>
             </div>
           </div>
         </CardHeader>
@@ -130,7 +218,7 @@ export default function PelangganPage() {
                 ) : filteredCustomers.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-8 text-center text-zinc-500">
-                      Tidak ada pelanggan yang ditemukan.
+                      Tidak ada pelanggan yang ditemukan pada periode ini.
                     </td>
                   </tr>
                 ) : (
