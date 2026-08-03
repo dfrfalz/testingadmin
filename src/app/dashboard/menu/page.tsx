@@ -5,10 +5,11 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils";
-import { Plus, Edit2, Trash2, Archive, Flame, Search, Folder, ArrowLeft, FolderPlus, Check, X, FolderInput } from "lucide-react";
+import { Plus, Edit2, Trash2, Archive, Flame, Search, Folder, ArrowLeft, FolderPlus, Check, X, FolderInput, ChevronDown } from "lucide-react";
 import MenuModal, { MenuType } from "@/components/MenuModal";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function MenuPage() {
   const [menus, setMenus] = useState<MenuType[]>([]);
@@ -534,16 +535,24 @@ export default function MenuPage() {
                 <label className="block text-sm font-medium mb-2 text-zinc-700 dark:text-zinc-300">
                   Pilih Folder Tujuan
                 </label>
-                <select 
-                  value={bulkMoveTargetFolder}
-                  onChange={(e) => setBulkMoveTargetFolder(e.target.value)}
-                  className="w-full flex h-10 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400"
-                >
-                  <option value="__root__">-- Luar Folder (Root) --</option>
-                  {folders.map(f => (
-                    <option key={f.id} value={f.name}>{f.name}</option>
-                  ))}
-                </select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="outline" className="w-full justify-between font-normal bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                      {bulkMoveTargetFolder === '__root__' ? '-- Luar Folder (Root) --' : bulkMoveTargetFolder}
+                      <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[200px] max-h-60 overflow-y-auto" align="start" style={{ zIndex: 105 }}>
+                    <DropdownMenuItem onClick={() => setBulkMoveTargetFolder('__root__')} className="cursor-pointer">
+                      -- Luar Folder (Root) --
+                    </DropdownMenuItem>
+                    {folders.map(f => (
+                      <DropdownMenuItem key={f.id} onClick={() => setBulkMoveTargetFolder(f.name)} className="cursor-pointer">
+                        {f.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
               
               <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-900">
