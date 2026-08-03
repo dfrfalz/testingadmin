@@ -1,18 +1,93 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Store, CreditCard, Bell, Shield } from "lucide-react";
+import { Save, Store, CreditCard, Bell, Shield, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PengaturanPage() {
-  const handleSave = (e: React.FormEvent) => {
+  const [settings, setSettings] = useState({
+    storeName: "Cumita - Cita Rasa Pedas yang Menggoda",
+    whatsapp: "62881025610837",
+    address: "Jl. H Naimun III, Pondok Pinang, Kebayoran Lama",
+    bankName: "BCA",
+    accountName: "Daffa Rafi AL Faraz",
+    accountNumber: "8735084321",
+    notificationNewOrder: true,
+    notificationNewChat: true,
+  });
+  
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('store_settings')
+        .select('*')
+        .eq('id', 'default')
+        .single();
+        
+      if (data && !error) {
+        setSettings({
+          storeName: data.store_name || settings.storeName,
+          whatsapp: data.store_whatsapp || settings.whatsapp,
+          address: data.store_address || settings.address,
+          bankName: data.bank_name || settings.bankName,
+          accountName: data.account_name || settings.accountName,
+          accountNumber: data.account_number || settings.accountNumber,
+          notificationNewOrder: data.notification_new_order ?? true,
+          notificationNewChat: data.notification_new_chat ?? true,
+        });
+      }
+      setLoading(false);
+    };
+    fetchSettings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setSettings(prev => ({ ...prev, [id]: value }));
+  };
+
+  const toggleNotification = (key: 'notificationNewOrder' | 'notificationNewChat') => {
+    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Pengaturan berhasil disimpan!");
+    setSaving(true);
+    
+    const { error } = await supabase
+      .from('store_settings')
+      .upsert({
+        id: 'default',
+        store_name: settings.storeName,
+        store_whatsapp: settings.whatsapp,
+        store_address: settings.address,
+        bank_name: settings.bankName,
+        account_name: settings.accountName,
+        account_number: settings.accountNumber,
+        notification_new_order: settings.notificationNewOrder,
+        notification_new_chat: settings.notificationNewChat,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      toast.error("Gagal menyimpan pengaturan.");
+      console.error(error);
+    } else {
+      toast.success("Pengaturan berhasil disimpan!");
+    }
+    setSaving(false);
   };
 
   return (
@@ -40,7 +115,8 @@ export default function PengaturanPage() {
 
         <div className="flex-1 min-w-0 w-full">
           <TabsContent value="toko" className="mt-0">
-            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm">
+            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm relative">
+              {loading && <div className="absolute inset-0 z-10 bg-white/50 dark:bg-black/50 flex items-center justify-center"><Loader2 className="animate-spin text-primary w-6 h-6" /></div>}
               <form onSubmit={handleSave}>
                 <CardHeader>
                   <CardTitle>Profil Toko</CardTitle>
@@ -51,21 +127,21 @@ export default function PengaturanPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="storeName">Nama Toko</Label>
-                    <Input id="storeName" defaultValue="Cumita - Cita Rasa Pedas yang Menggoda" className="max-w-xl" />
+                    <Input id="storeName" value={settings.storeName} onChange={handleChange} className="max-w-xl" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="whatsapp">Nomor WhatsApp Admin</Label>
-                    <Input id="whatsapp" defaultValue="62881025610837" className="max-w-xl" />
+                    <Input id="whatsapp" value={settings.whatsapp} onChange={handleChange} className="max-w-xl" />
                     <p className="text-[10px] text-zinc-500">Gunakan format 628... tanpa tanda plus (+).</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="address">Alamat Toko</Label>
-                    <Textarea id="address" defaultValue="Jl. Sukabirus, Bojongsoang, Bandung" rows={3} className="max-w-xl" />
+                    <Textarea id="address" value={settings.address} onChange={handleChange} rows={3} className="max-w-xl" />
                   </div>
                 </CardContent>
                 <CardFooter className="border-t border-zinc-100 dark:border-zinc-800/80 pt-4 px-6 pb-6 mt-4">
-                  <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90 text-white ml-auto">
-                    <Save className="h-4 w-4" /> Simpan Perubahan
+                  <Button type="submit" disabled={saving} className="gap-2 bg-primary hover:bg-primary/90 text-white ml-auto disabled:opacity-70">
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Simpan Perubahan
                   </Button>
                 </CardFooter>
               </form>
@@ -73,7 +149,8 @@ export default function PengaturanPage() {
           </TabsContent>
 
           <TabsContent value="pembayaran" className="mt-0">
-            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm">
+            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm relative">
+              {loading && <div className="absolute inset-0 z-10 bg-white/50 dark:bg-black/50 flex items-center justify-center"><Loader2 className="animate-spin text-primary w-6 h-6" /></div>}
               <form onSubmit={handleSave}>
                 <CardHeader>
                   <CardTitle>Metode Pembayaran</CardTitle>
@@ -85,16 +162,16 @@ export default function PengaturanPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
                     <div className="space-y-2">
                       <Label htmlFor="bankName">Nama Bank / E-Wallet</Label>
-                      <Input id="bankName" defaultValue="BCA" />
+                      <Input id="bankName" value={settings.bankName} onChange={handleChange} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="accountName">Nama Pemilik Rekening</Label>
-                      <Input id="accountName" defaultValue="Daffa Rafi AL Faraz" />
+                      <Input id="accountName" value={settings.accountName} onChange={handleChange} />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="accountNumber">Nomor Rekening</Label>
-                    <Input id="accountNumber" defaultValue="8735084321" className="max-w-md" />
+                    <Input id="accountNumber" value={settings.accountNumber} onChange={handleChange} className="max-w-md" />
                   </div>
                   
                   <div className="mt-8 pt-8 border-t border-zinc-100 dark:border-zinc-800/80">
@@ -103,13 +180,13 @@ export default function PengaturanPage() {
                       <div className="h-24 w-24 bg-zinc-100 dark:bg-zinc-900 rounded-lg flex items-center justify-center mb-4">
                         <span className="text-xs text-zinc-500">QRIS Image</span>
                       </div>
-                      <Button variant="outline" size="sm">Upload QRIS Baru</Button>
+                      <Button variant="outline" size="sm" type="button">Upload QRIS Baru</Button>
                     </div>
                   </div>
                 </CardContent>
                 <CardFooter className="border-t border-zinc-100 dark:border-zinc-800/80 pt-4 px-6 pb-6 mt-4">
-                  <Button type="submit" className="gap-2 bg-primary hover:bg-primary/90 text-white ml-auto">
-                    <Save className="h-4 w-4" /> Simpan Perubahan
+                  <Button type="submit" disabled={saving} className="gap-2 bg-primary hover:bg-primary/90 text-white ml-auto disabled:opacity-70">
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Simpan Perubahan
                   </Button>
                 </CardFooter>
               </form>
@@ -117,7 +194,8 @@ export default function PengaturanPage() {
           </TabsContent>
 
           <TabsContent value="notifikasi" className="mt-0">
-            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm">
+            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm relative">
+              {loading && <div className="absolute inset-0 z-10 bg-white/50 dark:bg-black/50 flex items-center justify-center"><Loader2 className="animate-spin text-primary w-6 h-6" /></div>}
               <CardHeader>
                 <CardTitle>Pengaturan Notifikasi</CardTitle>
                 <CardDescription>
@@ -125,22 +203,22 @@ export default function PengaturanPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 max-w-2xl">
-                <div className="flex items-center justify-between p-4 border border-zinc-100 dark:border-zinc-800/80 rounded-lg bg-zinc-50/50 dark:bg-zinc-900/50 transition-colors">
+                <div onClick={() => { toggleNotification('notificationNewOrder'); handleSave({ preventDefault: () => {} } as React.FormEvent); }} className="flex items-center justify-between p-4 border border-zinc-100 dark:border-zinc-800/80 rounded-lg bg-zinc-50/50 dark:bg-zinc-900/50 transition-colors cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
                   <div>
                     <h4 className="font-medium text-sm">Pesanan Baru</h4>
                     <p className="text-xs text-zinc-500 mt-0.5">Terima notifikasi suara saat ada pesanan baru masuk.</p>
                   </div>
-                  <div className="h-6 w-11 bg-primary rounded-full relative cursor-pointer flex-shrink-0 transition-colors">
-                    <div className="h-5 w-5 bg-white rounded-full absolute right-0.5 top-0.5 shadow transition-transform"></div>
+                  <div className={`h-6 w-11 rounded-full relative flex-shrink-0 transition-colors ${settings.notificationNewOrder ? 'bg-primary' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
+                    <div className={`h-5 w-5 bg-white rounded-full absolute top-0.5 shadow transition-transform ${settings.notificationNewOrder ? 'right-0.5 translate-x-0' : 'left-0.5 translate-x-0'}`}></div>
                   </div>
                 </div>
-                <div className="flex items-center justify-between p-4 border border-zinc-100 dark:border-zinc-800/80 rounded-lg bg-zinc-50/50 dark:bg-zinc-900/50 transition-colors">
+                <div onClick={() => { toggleNotification('notificationNewChat'); handleSave({ preventDefault: () => {} } as React.FormEvent); }} className="flex items-center justify-between p-4 border border-zinc-100 dark:border-zinc-800/80 rounded-lg bg-zinc-50/50 dark:bg-zinc-900/50 transition-colors cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800">
                   <div>
                     <h4 className="font-medium text-sm">Pesan Chat Baru</h4>
                     <p className="text-xs text-zinc-500 mt-0.5">Terima notifikasi saat pelanggan mengirim pesan.</p>
                   </div>
-                  <div className="h-6 w-11 bg-primary rounded-full relative cursor-pointer flex-shrink-0 transition-colors">
-                    <div className="h-5 w-5 bg-white rounded-full absolute right-0.5 top-0.5 shadow transition-transform"></div>
+                  <div className={`h-6 w-11 rounded-full relative flex-shrink-0 transition-colors ${settings.notificationNewChat ? 'bg-primary' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
+                    <div className={`h-5 w-5 bg-white rounded-full absolute top-0.5 shadow transition-transform ${settings.notificationNewChat ? 'right-0.5 translate-x-0' : 'left-0.5 translate-x-0'}`}></div>
                   </div>
                 </div>
               </CardContent>
@@ -148,7 +226,7 @@ export default function PengaturanPage() {
           </TabsContent>
 
           <TabsContent value="keamanan" className="mt-0">
-            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm">
+            <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm relative">
               <CardHeader>
                 <CardTitle>Keamanan Akun</CardTitle>
                 <CardDescription>
@@ -170,7 +248,7 @@ export default function PengaturanPage() {
                 </div>
               </CardContent>
               <CardFooter className="border-t border-zinc-100 dark:border-zinc-800/80 pt-4 px-6 pb-6 mt-4">
-                <Button className="gap-2 bg-primary hover:bg-primary/90 text-white ml-auto">
+                <Button className="gap-2 bg-primary hover:bg-primary/90 text-white ml-auto" type="button">
                   <Save className="h-4 w-4" /> Update Password
                 </Button>
               </CardFooter>
