@@ -181,8 +181,8 @@ export default function PelangganPage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-4">
+      <Card className="overflow-hidden">
+        <CardHeader className="p-6 pb-4">
           <div className="flex flex-col sm:flex-row justify-between gap-4">
             <div className="relative w-full sm:max-w-sm">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
@@ -195,55 +195,57 @@ export default function PelangganPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 border-y border-zinc-200 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-800">
+              <thead className="text-xs text-zinc-500 uppercase bg-zinc-50/50 border-y border-zinc-200 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-800">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Pelanggan</th>
-                  <th className="px-4 py-3 font-medium">No. WA</th>
-                  <th className="px-4 py-3 font-medium">Bergabung</th>
-                  <th className="px-4 py-3 font-medium text-center">Total Pesanan</th>
-                  <th className="px-4 py-3 font-medium text-right">Total Belanja</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium">Pelanggan</th>
+                  <th className="px-6 py-4 font-medium">No. WA</th>
+                  <th className="px-6 py-4 font-medium">Bergabung</th>
+                  <th className="px-6 py-4 font-medium text-center">Total Pesanan</th>
+                  <th className="px-6 py-4 font-medium text-right">Total Belanja</th>
+                  <th className="px-6 py-4 font-medium">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={6} className="px-6 py-8 text-center text-zinc-500">
                       Memuat data pelanggan...
                     </td>
                   </tr>
                 ) : filteredCustomers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={6} className="px-6 py-8 text-center text-zinc-500">
                       Tidak ada pelanggan yang ditemukan pada periode ini.
                     </td>
                   </tr>
                 ) : (
                   filteredCustomers.map((customer, index) => (
-                    <tr key={index} className="border-b border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    <tr key={index} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold flex-shrink-0">
                             {customer.name.charAt(0)}
                           </div>
-                          <div>
+                          <div className="flex flex-col justify-center">
                             <div className="font-medium text-zinc-900 dark:text-zinc-100">{customer.name}</div>
-                            <div className="text-[10px] text-zinc-500 dark:text-zinc-400">{customer.email}</div>
+                            {customer.email !== "-" && (
+                              <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">{customer.email}</div>
+                            )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{customer.phone}</td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
+                      <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">{customer.phone}</td>
+                      <td className="px-6 py-4 text-zinc-600 dark:text-zinc-300">
                         {format(new Date(customer.joinDate), 'dd MMM yyyy', { locale: localeId })}
                       </td>
-                      <td className="px-4 py-3 text-center text-zinc-600 dark:text-zinc-300">{customer.totalOrders}x</td>
-                      <td className="px-4 py-3 font-medium text-right text-zinc-900 dark:text-zinc-100">
+                      <td className="px-6 py-4 text-center text-zinc-600 dark:text-zinc-300">{customer.totalOrders}x</td>
+                      <td className="px-6 py-4 font-medium text-right text-zinc-900 dark:text-zinc-100">
                         {formatIDR(customer.totalSpent)}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-6 py-4">
                         <Badge 
                           variant={customer.status === "VIP" ? "default" : "outline"} 
                           className={customer.status === "VIP" ? "bg-amber-500 hover:bg-amber-600 text-white dark:bg-amber-600 dark:hover:bg-amber-700" : ""}
