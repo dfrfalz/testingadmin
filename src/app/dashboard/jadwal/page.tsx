@@ -54,7 +54,6 @@ function DatePicker({
             setDate(d ? d.toISOString() : "");
             setOpen(false);
           }}
-          initialFocus
           className="text-zinc-300"
         />
       </PopoverContent>
