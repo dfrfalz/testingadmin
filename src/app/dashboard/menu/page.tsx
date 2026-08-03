@@ -262,10 +262,10 @@ export default function MenuPage() {
                 {currentFolder ? "Folder ini kosong." : "Belum ada menu di luar folder."}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {filteredMenus.map((menu) => (
                   <Card key={menu.id} className={`overflow-hidden transition-opacity ${menu.status === 'arsip' ? 'opacity-60 grayscale-[50%]' : ''}`}>
-                    <div className="relative aspect-video bg-zinc-100 dark:bg-zinc-800">
+                    <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-800">
                       {menu.image_url ? (
                         <img src={menu.image_url} alt={menu.name} className="w-full h-full object-cover" />
                       ) : (
@@ -277,7 +277,7 @@ export default function MenuPage() {
                         </div>
                       )}
                     </div>
-                    <CardContent className="p-5">
+                    <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
                           <h3 className="font-bold text-lg leading-tight">{menu.name}</h3>
