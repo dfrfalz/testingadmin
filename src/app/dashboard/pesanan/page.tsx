@@ -109,12 +109,12 @@ export default function PesananPage() {
       `="${order.customer_whatsapp || "-"}"`, // Force Excel to treat as string instead of scientific notation
       `"${toTitleCase(order.customer_address).replace(/"/g, '""')}"`, // Title Case
       order.status || "-",
-      `"${formatIDR(order.total || 0)}"` // Format Rupiah
+      order.total || 0 // Angka polos tanpa Rp
     ]);
 
     // Hitung Total Semua Penjualan
     const totalSemua = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-    csvData.push(["", "", "", "", "", "Total", `"${formatIDR(totalSemua)}"`]);
+    csvData.push(["", "", "", "", "", "Total", totalSemua]);
 
     // Gabungkan Header dan Data
     const csvContent = [
