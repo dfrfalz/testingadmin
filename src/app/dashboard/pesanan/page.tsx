@@ -86,6 +86,45 @@ export default function PesananPage() {
     );
   });
 
+  const handleExport = () => {
+    if (orders.length === 0) {
+      toast.error("Tidak ada data untuk diekspor");
+      return;
+    }
+
+    // Header CSV
+    const headers = ["ID Pesanan", "Tanggal", "Nama Pelanggan", "WhatsApp", "Alamat", "Status", "Total Pembayaran"];
+    
+    // Data CSV
+    const csvData = orders.map(order => [
+      order.short_id || "-",
+      new Date(order.created_at).toLocaleString("id-ID"),
+      order.customer_name || "-",
+      order.customer_whatsapp || "-",
+      `"${order.customer_address?.replace(/"/g, '""') || "-"}"`,
+      order.status || "-",
+      order.total_price || 0
+    ]);
+
+    // Gabungkan Header dan Data
+    const csvContent = [
+      headers.join(","),
+      ...csvData.map(row => row.join(","))
+    ].join("\n");
+
+    // Buat Blob dan download
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // \uFEFF for Excel UTF-8 BOM
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Pesanan_Cumita_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success("Data pesanan berhasil diekspor!");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -94,7 +133,7 @@ export default function PesananPage() {
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Kelola semua pesanan yang masuk dari pelanggan (Live dari Database).</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExport}>
             <Download className="h-4 w-4" /> Export
           </Button>
         </div>
