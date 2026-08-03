@@ -440,10 +440,10 @@ export default function MenuPage() {
                 Apakah Anda yakin ingin menghapus menu ini secara permanen? Tindakan ini tidak dapat dibatalkan.
               </p>
             </div>
-            <div className="flex border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex border-t border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-b-2xl">
               <Button 
                 variant="ghost" 
-                className="flex-1 rounded-none py-5 h-auto border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900"
+                className="flex-1 rounded-none py-5 h-auto border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                 onClick={() => setDeleteConfirmMenu(null)}
                 disabled={isDeleting}
               >
@@ -451,7 +451,7 @@ export default function MenuPage() {
               </Button>
               <Button 
                 variant="destructive"
-                className="flex-1 rounded-none py-5 h-auto"
+                className="flex-1 rounded-none py-5 h-auto text-white dark:text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
@@ -475,10 +475,10 @@ export default function MenuPage() {
                 Apakah Anda yakin ingin menghapus folder <strong>"{deleteConfirmFolder}"</strong>? Menu di dalamnya tidak akan terhapus, hanya akan dikeluarkan dari folder.
               </p>
             </div>
-            <div className="flex border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex border-t border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-b-2xl">
               <Button 
                 variant="ghost" 
-                className="flex-1 rounded-none py-5 h-auto border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900"
+                className="flex-1 rounded-none py-5 h-auto border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                 onClick={() => setDeleteConfirmFolder(null)}
                 disabled={isDeleting}
               >
@@ -486,7 +486,7 @@ export default function MenuPage() {
               </Button>
               <Button 
                 variant="destructive"
-                className="flex-1 rounded-none py-5 h-auto"
+                className="flex-1 rounded-none py-5 h-auto text-white dark:text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                 onClick={handleDeleteFolder}
                 disabled={isDeleting}
               >
@@ -555,11 +555,11 @@ export default function MenuPage() {
                 </DropdownMenu>
               </div>
               
-              <div className="flex border-t border-zinc-100 dark:border-zinc-800">
+              <div className="flex border-t border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-b-2xl">
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  className="flex-1 rounded-none py-5 h-auto border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900"
+                  className="flex-1 rounded-none py-5 h-auto border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                   onClick={() => setIsBulkMoveModalOpen(false)}
                   disabled={isMoving}
                 >
@@ -568,7 +568,7 @@ export default function MenuPage() {
                 <Button 
                   type="submit" 
                   variant="destructive"
-                  className="flex-1 rounded-none py-5 h-auto"
+                  className="flex-1 rounded-none py-5 h-auto text-white dark:text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                   disabled={isMoving}
                 >
                   {isMoving ? "Memindahkan..." : "Pindahkan"}
