@@ -98,9 +98,9 @@ export default function PesananPage() {
     // Data CSV
     const csvData = orders.map(order => [
       order.short_id || "-",
-      new Date(order.created_at).toLocaleString("id-ID"),
-      order.customer_name || "-",
-      order.customer_whatsapp || "-",
+      `"${new Date(order.created_at).toLocaleString("id-ID")}"`, // Wrap in quotes to prevent comma splitting
+      `"${order.customer_name?.replace(/"/g, '""') || "-"}"`, // Wrap in quotes
+      `="${order.customer_whatsapp || "-"}"`, // Force Excel to treat as string instead of scientific notation
       `"${order.customer_address?.replace(/"/g, '""') || "-"}"`,
       order.status || "-",
       order.total_price || 0
