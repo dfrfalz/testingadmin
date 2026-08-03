@@ -72,7 +72,7 @@ export default function JadwalPage() {
       .eq('id', 'default');
 
     if (error) {
-      toast.error("Gagal menyimpan jadwal.");
+      toast.error("Gagal: " + error.message);
       console.error(error);
     } else {
       toast.success("Jadwal berhasil diperbarui!");
