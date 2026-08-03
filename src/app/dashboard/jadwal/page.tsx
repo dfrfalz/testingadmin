@@ -134,7 +134,7 @@ export default function JadwalPage() {
                 <Label htmlFor="poStartDate">Mulai PO (Opsional)</Label>
                 <Input 
                   id="poStartDate" 
-                  placeholder="Cth: 10 Agustus 2026" 
+                  type="date"
                   value={settings.poStartDate} 
                   onChange={handleChange} 
                 />
@@ -143,7 +143,7 @@ export default function JadwalPage() {
                 <Label htmlFor="poEndDate">Batas Akhir Pemesanan (Close PO)</Label>
                 <Input 
                   id="poEndDate" 
-                  placeholder="Cth: 15 Agustus 2026, Pukul 12:00 WIB" 
+                  type="datetime-local"
                   value={settings.poEndDate} 
                   onChange={handleChange} 
                 />
@@ -152,7 +152,7 @@ export default function JadwalPage() {
                 <Label htmlFor="poDeliveryDate">Jadwal Pengiriman</Label>
                 <Input 
                   id="poDeliveryDate" 
-                  placeholder="Cth: 17 Agustus 2026 (Mulai dikirim pagi)" 
+                  type="date"
                   value={settings.poDeliveryDate} 
                   onChange={handleChange} 
                 />
