@@ -31,15 +31,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="relative flex min-h-screen bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
+      {/* Latar Belakang Abstrak Premium */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-primary/20 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary/10 blur-[100px]" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%220.03%22/%3E%3C/svg%3E')] opacity-50" />
+      </div>
+
       {/* Kiri: Bagian Branding (Tersembunyi di Mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-white dark:bg-zinc-950 overflow-hidden flex-col items-center justify-center p-12">
-        {/* Latar Belakang Abstrak Premium */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-primary/20 blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary/10 blur-[100px]" />
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%220.03%22/%3E%3C/svg%3E')] opacity-50" />
-        </div>
+      <div className="hidden lg:flex lg:w-1/2 relative flex-col items-center justify-center p-12 z-10 border-r border-zinc-200/50 dark:border-zinc-800/50 backdrop-blur-sm">
 
         <div className="relative z-10 text-center flex flex-col items-center">
           <img 
@@ -66,7 +67,7 @@ export default function LoginPage() {
       </div>
 
       {/* Kanan: Bagian Form Login */}
-      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-12 relative">
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-12 relative z-10 backdrop-blur-sm">
         
         {/* Tombol Tema di Kanan Atas */}
         <div className="absolute top-6 right-6 lg:top-8 lg:right-10">
