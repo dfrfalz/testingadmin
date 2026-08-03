@@ -103,7 +103,7 @@ export default function PesananPage() {
       `="${order.customer_whatsapp || "-"}"`, // Force Excel to treat as string instead of scientific notation
       `"${order.customer_address?.replace(/"/g, '""') || "-"}"`,
       order.status || "-",
-      order.total_price || 0
+      order.total || 0
     ]);
 
     // Gabungkan Header dan Data
