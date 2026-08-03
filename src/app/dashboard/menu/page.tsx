@@ -443,7 +443,7 @@ export default function MenuPage() {
             <div className="flex border-t border-zinc-100 dark:border-zinc-800">
               <Button 
                 variant="ghost" 
-                className="flex-1 rounded-none py-6 h-auto bg-zinc-900 hover:bg-zinc-800 text-white hover:text-white dark:bg-zinc-900 dark:hover:bg-zinc-800 border-r border-zinc-800"
+                className="flex-1 rounded-none py-5 h-auto border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900"
                 onClick={() => setDeleteConfirmMenu(null)}
                 disabled={isDeleting}
               >
@@ -451,7 +451,7 @@ export default function MenuPage() {
               </Button>
               <Button 
                 variant="destructive"
-                className="flex-1 rounded-none py-6 h-auto"
+                className="flex-1 rounded-none py-5 h-auto"
                 onClick={handleDelete}
                 disabled={isDeleting}
               >
@@ -478,7 +478,7 @@ export default function MenuPage() {
             <div className="flex border-t border-zinc-100 dark:border-zinc-800">
               <Button 
                 variant="ghost" 
-                className="flex-1 rounded-none py-6 h-auto bg-zinc-900 hover:bg-zinc-800 text-white hover:text-white dark:bg-zinc-900 dark:hover:bg-zinc-800 border-r border-zinc-800"
+                className="flex-1 rounded-none py-5 h-auto border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900"
                 onClick={() => setDeleteConfirmFolder(null)}
                 disabled={isDeleting}
               >
@@ -486,7 +486,7 @@ export default function MenuPage() {
               </Button>
               <Button 
                 variant="destructive"
-                className="flex-1 rounded-none py-6 h-auto"
+                className="flex-1 rounded-none py-5 h-auto"
                 onClick={handleDeleteFolder}
                 disabled={isDeleting}
               >
@@ -559,7 +559,7 @@ export default function MenuPage() {
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  className="flex-1 rounded-none py-6 h-auto bg-zinc-900 hover:bg-zinc-800 text-white hover:text-white dark:bg-zinc-900 dark:hover:bg-zinc-800 border-r border-zinc-800"
+                  className="flex-1 rounded-none py-5 h-auto border-r border-zinc-100 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900"
                   onClick={() => setIsBulkMoveModalOpen(false)}
                   disabled={isMoving}
                 >
@@ -568,7 +568,7 @@ export default function MenuPage() {
                 <Button 
                   type="submit" 
                   variant="destructive"
-                  className="flex-1 rounded-none py-6 h-auto"
+                  className="flex-1 rounded-none py-5 h-auto"
                   disabled={isMoving}
                 >
                   {isMoving ? "Memindahkan..." : "Pindahkan"}
