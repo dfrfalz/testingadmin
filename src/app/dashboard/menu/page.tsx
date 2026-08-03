@@ -555,10 +555,11 @@ export default function MenuPage() {
                 </DropdownMenu>
               </div>
               
-              <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-900">
+              <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-3 bg-zinc-50 dark:bg-zinc-900">
                 <Button 
                   type="button" 
                   variant="outline" 
+                  className="flex-1"
                   onClick={() => setIsBulkMoveModalOpen(false)}
                   disabled={isMoving}
                 >
@@ -566,6 +567,7 @@ export default function MenuPage() {
                 </Button>
                 <Button 
                   type="submit" 
+                  className="flex-1"
                   disabled={isMoving}
                 >
                   {isMoving ? "Memindahkan..." : "Pindahkan"}
