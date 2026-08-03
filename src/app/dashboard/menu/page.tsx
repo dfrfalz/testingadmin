@@ -538,13 +538,13 @@ export default function MenuPage() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button type="button" variant="outline" className="w-full justify-between font-normal bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                      {bulkMoveTargetFolder === '__root__' ? '-- Luar Folder (Root) --' : bulkMoveTargetFolder}
+                      {bulkMoveTargetFolder === '__root__' ? 'Tanpa Folder' : bulkMoveTargetFolder}
                       <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-[200px] max-h-60 overflow-y-auto" align="start" style={{ zIndex: 105 }}>
                     <DropdownMenuItem onClick={() => setBulkMoveTargetFolder('__root__')} className="cursor-pointer">
-                      -- Luar Folder (Root) --
+                      Tanpa Folder
                     </DropdownMenuItem>
                     {folders.map(f => (
                       <DropdownMenuItem key={f.id} onClick={() => setBulkMoveTargetFolder(f.name)} className="cursor-pointer">
