@@ -92,6 +92,12 @@ export default function PesananPage() {
       return;
     }
 
+    // Helper untuk Title Case
+    const toTitleCase = (str: string) => {
+      if (!str) return "-";
+      return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    };
+
     // Header CSV
     const headers = ["ID Pesanan", "Tanggal", "Nama Pelanggan", "WhatsApp", "Alamat", "Status", "Total Pembayaran"];
     
@@ -99,12 +105,16 @@ export default function PesananPage() {
     const csvData = orders.map(order => [
       order.short_id || "-",
       `"${new Date(order.created_at).toLocaleString("id-ID")}"`, // Wrap in quotes to prevent comma splitting
-      `"${order.customer_name?.replace(/"/g, '""') || "-"}"`, // Wrap in quotes
+      `"${toTitleCase(order.customer_name).replace(/"/g, '""')}"`, // Title Case & Wrap in quotes
       `="${order.customer_whatsapp || "-"}"`, // Force Excel to treat as string instead of scientific notation
-      `"${order.customer_address?.replace(/"/g, '""') || "-"}"`,
+      `"${toTitleCase(order.customer_address).replace(/"/g, '""')}"`, // Title Case
       order.status || "-",
-      order.total || 0
+      `"${formatIDR(order.total || 0)}"` // Format Rupiah
     ]);
+
+    // Hitung Total Semua Penjualan
+    const totalSemua = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    csvData.push(["", "", "", "", "", "Total", `"${formatIDR(totalSemua)}"`]);
 
     // Gabungkan Header dan Data
     const csvContent = [
