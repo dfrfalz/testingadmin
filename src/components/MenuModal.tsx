@@ -192,7 +192,7 @@ export default function MenuModal({
               {/* Basic Info */}
               <div className="w-full sm:w-2/3 space-y-4">
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-[2]">
+                  <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">Nama Menu</label>
                     <Input 
                       required 
