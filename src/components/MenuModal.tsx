@@ -52,6 +52,7 @@ export default function MenuModal({
     stock: 0,
     image_url: "",
     status: "aktif",
+    is_best_seller: false,
   });
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -186,6 +187,23 @@ export default function MenuModal({
                     </>
                   )}
                   <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
+                </div>
+                
+                <div 
+                  className="mt-4 flex items-center space-x-3 bg-zinc-50 dark:bg-zinc-900/50 p-3.5 rounded-lg border border-zinc-200 dark:border-zinc-800 cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors" 
+                  onClick={() => setFormData({...formData, is_best_seller: !formData.is_best_seller})}
+                >
+                  <input 
+                    type="checkbox" 
+                    id="is_best_seller"
+                    checked={formData.is_best_seller || false}
+                    onChange={(e) => setFormData({...formData, is_best_seller: e.target.checked})}
+                    className="w-4 h-4 text-primary bg-white border-zinc-300 rounded focus:ring-primary dark:focus:ring-primary dark:ring-offset-zinc-900 dark:bg-zinc-800 dark:border-zinc-700 cursor-pointer accent-primary"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <label htmlFor="is_best_seller" className="text-sm font-medium cursor-pointer flex-1 text-zinc-900 dark:text-zinc-100">
+                    Jadikan Best Seller
+                  </label>
                 </div>
               </div>
 
