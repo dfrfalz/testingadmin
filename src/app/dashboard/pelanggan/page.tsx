@@ -122,6 +122,29 @@ export default function PelangganPage() {
     c.email.toLowerCase().includes(search.toLowerCase())
   );
 
+  const exportToCSV = () => {
+    const headers = ["Nama", "No. WA", "Email", "Tanggal Bergabung", "Total Pesanan", "Total Belanja", "Status"];
+    const rows = filteredCustomers.map(c => [
+      `"${c.name}"`,
+      `"${c.phone}"`,
+      `"${c.email}"`,
+      `"${format(new Date(c.joinDate), 'dd MMM yyyy', { locale: localeId })}"`,
+      c.totalOrders,
+      c.totalSpent,
+      `"${c.status}"`
+    ]);
+    const csvContent = [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Data_Pelanggan_Cumita_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -139,7 +162,7 @@ export default function PelangganPage() {
               <TabsTrigger value="tahun">Tahun Ini</TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={exportToCSV}>
             <Download className="h-4 w-4" /> Export
           </Button>
         </div>
