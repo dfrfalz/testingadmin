@@ -17,6 +17,11 @@ export default function MenuPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<MenuType | null>(null);
   
+  // Folder Modal state
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [isSubmittingFolder, setIsSubmittingFolder] = useState(false);
+  
   const [search, setSearch] = useState("");
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
 
@@ -100,15 +105,24 @@ export default function MenuPage() {
     }
   };
 
-  const handleCreateFolder = async () => {
-    const folderName = window.prompt("Masukkan nama folder baru:");
-    if (!folderName || folderName.trim() === "") return;
+  const handleOpenFolderModal = () => {
+    setNewFolderName("");
+    setIsFolderModalOpen(true);
+  };
+
+  const handleCreateFolderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFolderName || newFolderName.trim() === "") return;
     
-    const { error } = await supabase.from('folders').insert([{ name: folderName.trim() }]);
+    setIsSubmittingFolder(true);
+    const { error } = await supabase.from('folders').insert([{ name: newFolderName.trim() }]);
+    setIsSubmittingFolder(false);
+    
     if (error) {
       toast.error("Gagal membuat folder. Nama mungkin sudah ada.");
     } else {
       toast.success("Folder berhasil dibuat!");
+      setIsFolderModalOpen(false);
       fetchMenusAndFolders();
     }
   };
@@ -162,7 +176,7 @@ export default function MenuPage() {
         </div>
         <div className="flex gap-2">
           {currentFolder === null && (
-            <Button variant="outline" onClick={handleCreateFolder} className="gap-2">
+            <Button variant="outline" onClick={handleOpenFolderModal} className="gap-2">
               <FolderPlus className="w-4 h-4" />
               Buat Folder
             </Button>
@@ -295,6 +309,52 @@ export default function MenuPage() {
         menu={selectedMenu} 
         onSuccess={fetchMenusAndFolders}
       />
+
+      {/* Folder Creation Modal */}
+      {isFolderModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-800">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <FolderPlus className="w-5 h-5 text-primary" />
+                Buat Folder Baru
+              </h2>
+            </div>
+            
+            <form onSubmit={handleCreateFolderSubmit}>
+              <div className="p-6">
+                <label className="block text-sm font-medium mb-2 text-zinc-700 dark:text-zinc-300">
+                  Nama Folder
+                </label>
+                <Input 
+                  autoFocus
+                  placeholder="Contoh: Minuman Dingin"
+                  value={newFolderName}
+                  onChange={(e) => setNewFolderName(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-900">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsFolderModalOpen(false)}
+                  disabled={isSubmittingFolder}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isSubmittingFolder || !newFolderName.trim()}
+                >
+                  {isSubmittingFolder ? "Menyimpan..." : "Simpan"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
