@@ -72,8 +72,7 @@ export default function JadwalPage() {
       .eq('id', 'default');
 
     if (error) {
-      toast.error("Gagal: " + error.message);
-      console.error(error);
+      toast.error("Gagal: Pastikan Anda sudah menjalankan script SQL di Supabase!");
     } else {
       toast.success("Jadwal berhasil diperbarui!");
     }
