@@ -179,50 +179,48 @@ export default function JadwalPage() {
               </Alert>
             ) : null}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
-              <div className="space-y-2 flex flex-col">
-                <Label htmlFor="poStartDate">Mulai PO (Opsional)</Label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="space-y-3 flex flex-col bg-zinc-50/50 dark:bg-zinc-900/20 p-5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                <Label htmlFor="poStartDate" className="text-sm font-semibold">Mulai PO (Opsional)</Label>
                 <DatePicker 
                   date={settings.poStartDate} 
                   setDate={(d) => setSettings(p => ({...p, poStartDate: d}))} 
                   placeholder="Pilih Tanggal Mulai"
                 />
+                <p className="text-xs text-zinc-500">Kapan pre-order ini mulai dibuka untuk pelanggan.</p>
               </div>
-              <div className="space-y-2 flex flex-col">
-                <Label htmlFor="poEndDate">Batas Akhir Pemesanan (Close PO)</Label>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <DatePicker 
-                      date={settings.poEndDate} 
-                      setDate={(d) => setSettings(p => ({...p, poEndDate: d}))} 
-                      placeholder="Pilih Tanggal"
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-zinc-500">Jam bisa ditambahkan langsung di kolom pengiriman jika perlu.</p>
+              <div className="space-y-3 flex flex-col bg-zinc-50/50 dark:bg-zinc-900/20 p-5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                <Label htmlFor="poEndDate" className="text-sm font-semibold">Batas Akhir Pemesanan (Close PO)</Label>
+                <DatePicker 
+                  date={settings.poEndDate} 
+                  setDate={(d) => setSettings(p => ({...p, poEndDate: d}))} 
+                  placeholder="Pilih Tanggal Tutup"
+                />
+                <p className="text-xs text-zinc-500">Tenggat waktu maksimal pelanggan dapat memesan.</p>
               </div>
-              <div className="space-y-2 md:col-span-2 flex flex-col">
-                <Label htmlFor="poDeliveryDate">Jadwal Pengiriman</Label>
+              <div className="space-y-3 flex flex-col bg-zinc-50/50 dark:bg-zinc-900/20 p-5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                <Label htmlFor="poDeliveryDate" className="text-sm font-semibold">Jadwal Pengiriman</Label>
                 <DatePicker 
                   date={settings.poDeliveryDate} 
                   setDate={(d) => setSettings(p => ({...p, poDeliveryDate: d}))} 
                   placeholder="Pilih Tanggal Pengiriman"
                 />
+                <p className="text-xs text-zinc-500">Kapan pesanan akan mulai didistribusikan.</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 dark:border-zinc-800/80 shadow-sm">
-          <CardHeader>
+          <CardHeader className="bg-zinc-50/50 dark:bg-zinc-900/50 border-b border-zinc-100 dark:border-zinc-800/80">
             <CardTitle className="text-lg">Jam Operasional Reguler</CardTitle>
             <CardDescription>
               Teks ini akan ditampilkan di bagian Footer website pembeli.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-w-3xl">
-              <Label htmlFor="operationalSchedule">Jadwal (Pisahkan dengan baris baru / enter)</Label>
+          <CardContent className="pt-6">
+            <div className="space-y-3 w-full">
+              <Label htmlFor="operationalSchedule" className="text-sm font-semibold">Jadwal (Pisahkan dengan baris baru / enter)</Label>
               <Textarea 
                 id="operationalSchedule" 
                 rows={5}

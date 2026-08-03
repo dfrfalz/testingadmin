@@ -15,9 +15,9 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
 
 export default function RootLayout({
   children,
@@ -29,6 +29,7 @@ export default function RootLayout({
       <body className="h-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
+          <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>
     </html>
