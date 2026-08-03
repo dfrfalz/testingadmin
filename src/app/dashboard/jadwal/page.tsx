@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -36,17 +36,15 @@ function DatePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "w-full justify-start text-left font-normal bg-zinc-950/50 border-zinc-800 text-zinc-100 hover:bg-zinc-900 hover:text-white",
-            !date && "text-zinc-500"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {parsedDate ? format(parsedDate, "PPP", { locale: id }) : <span>{placeholder}</span>}
-        </Button>
+      <PopoverTrigger
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-full justify-start text-left font-normal bg-zinc-950/50 border-zinc-800 text-zinc-100 hover:bg-zinc-900 hover:text-white",
+          !date && "text-zinc-500"
+        )}
+      >
+        <CalendarIcon className="mr-2 h-4 w-4" />
+        {parsedDate ? format(parsedDate, "PPP", { locale: id }) : <span>{placeholder}</span>}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 border-zinc-800 bg-zinc-950" align="start">
         <Calendar
