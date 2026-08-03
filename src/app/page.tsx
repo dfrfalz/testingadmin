@@ -143,7 +143,7 @@ export default function LoginPage() {
           </form>
 
           <div className="text-center">
-            <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Area Terbatas (Restricted)
             </p>
           </div>
