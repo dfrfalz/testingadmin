@@ -33,7 +33,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
       {/* Kiri: Bagian Branding (Tersembunyi di Mobile) */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-zinc-950 overflow-hidden flex-col items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-white dark:bg-zinc-950 overflow-hidden flex-col items-center justify-center p-12">
         {/* Latar Belakang Abstrak Premium */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-primary/20 blur-[120px]" />
@@ -43,20 +43,25 @@ export default function LoginPage() {
 
         <div className="relative z-10 text-center flex flex-col items-center">
           <img 
+            src="/logo_cumita.png" 
+            alt="CUMITA" 
+            className="w-64 md:w-80 h-auto object-contain mb-8 drop-shadow-2xl dark:hidden" 
+          />
+          <img 
             src="/logo_tema_gelap.png" 
             alt="CUMITA" 
-            className="w-64 md:w-80 h-auto object-contain mb-8 drop-shadow-2xl" 
+            className="w-64 md:w-80 h-auto object-contain mb-8 drop-shadow-2xl hidden dark:block" 
           />
-          <h1 className="text-3xl font-serif text-zinc-100 font-medium tracking-wide">
+          <h1 className="text-3xl font-serif text-zinc-900 dark:text-zinc-100 font-medium tracking-wide">
             Sistem Manajemen Pusat
           </h1>
-          <p className="mt-4 text-zinc-400 max-w-md text-lg font-light leading-relaxed">
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400 max-w-sm font-light">
             Kelola pesanan, pelanggan, dan pendapatan dengan sistem dashboard eksklusif Cumita.
           </p>
         </div>
 
         <div className="absolute bottom-10 left-12 text-zinc-500 text-sm font-medium tracking-widest uppercase">
-          © 2026 CUMITA EXCLUSIVE
+          &copy; 2026 CUMITA EXCLUSIVE
         </div>
       </div>
 
