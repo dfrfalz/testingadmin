@@ -338,11 +338,23 @@ export default function MenuModal({
           </form>
         </div>
         
-        <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-900">
-          <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+        <div className="flex border-t border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-b-2xl mt-auto shrink-0">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            className="flex-1 rounded-none py-5 h-auto border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
+            onClick={onClose} 
+            disabled={loading}
+          >
             Batal
           </Button>
-          <Button type="submit" form="menuForm" disabled={loading} className="min-w-[120px]">
+          <Button 
+            type="submit" 
+            form="menuForm" 
+            variant="destructive"
+            className="flex-1 rounded-none py-5 h-auto text-white dark:text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
+            disabled={loading}
+          >
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             {menu ? "Simpan Perubahan" : "Tambah Menu"}
           </Button>

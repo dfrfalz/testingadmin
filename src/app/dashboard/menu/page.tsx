@@ -406,10 +406,11 @@ export default function MenuPage() {
                 />
               </div>
               
-              <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-900">
+              <div className="flex border-t border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-b-2xl">
                 <Button 
                   type="button" 
-                  variant="outline" 
+                  variant="ghost" 
+                  className="flex-1 rounded-none py-5 h-auto border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-900 text-zinc-900 dark:text-zinc-100"
                   onClick={() => setIsFolderModalOpen(false)}
                   disabled={isSubmittingFolder}
                 >
@@ -417,6 +418,8 @@ export default function MenuPage() {
                 </Button>
                 <Button 
                   type="submit" 
+                  variant="destructive"
+                  className="flex-1 rounded-none py-5 h-auto text-white dark:text-white bg-red-600 hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
                   disabled={isSubmittingFolder || !newFolderName.trim()}
                 >
                   {isSubmittingFolder ? "Menyimpan..." : "Simpan"}
