@@ -1,65 +1,148 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { Lock, User, ArrowRight } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Simulasi Login
+    setTimeout(() => {
+      if (email === "admin@cumita.com" && password === "admin123") {
+        toast.success("Login berhasil!");
+        router.push("/dashboard");
+      } else {
+        toast.error("Email atau password salah!");
+        setLoading(false);
+      }
+    }, 1200);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      {/* Kiri: Bagian Branding (Tersembunyi di Mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-zinc-950 overflow-hidden flex-col items-center justify-center p-12">
+        {/* Latar Belakang Abstrak Premium */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] rounded-full bg-primary/20 blur-[120px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary/10 blur-[100px]" />
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.85%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22 opacity=%220.03%22/%3E%3C/svg%3E')] opacity-50" />
+        </div>
+
+        <div className="relative z-10 text-center flex flex-col items-center">
+          <img 
+            src="/logo_tema_gelap.png" 
+            alt="CUMITA" 
+            className="w-64 md:w-80 h-auto object-contain mb-8 drop-shadow-2xl" 
+          />
+          <h1 className="text-3xl font-serif text-zinc-100 font-medium tracking-wide">
+            Sistem Manajemen Pusat
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-4 text-zinc-400 max-w-md text-lg font-light leading-relaxed">
+            Kelola pesanan, pelanggan, dan pendapatan dengan sistem dashboard eksklusif Cumita.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="absolute bottom-10 left-12 text-zinc-500 text-sm font-medium tracking-widest uppercase">
+          © 2026 CUMITA EXCLUSIVE
         </div>
-      </main>
+      </div>
+
+      {/* Kanan: Bagian Form Login */}
+      <div className="flex w-full lg:w-1/2 items-center justify-center p-6 sm:p-12 relative">
+        
+        {/* Tombol Tema di Kanan Atas */}
+        <div className="absolute top-6 right-6 lg:top-8 lg:right-10">
+          <ThemeToggle />
+        </div>
+
+        <div className="w-full max-w-md space-y-10">
+          <div className="text-center lg:text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 font-serif">
+              Selamat Datang
+            </h2>
+            <p className="mt-2 text-zinc-500 dark:text-zinc-400">
+              Silakan masuk ke akun administrator Anda.
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Alamat Email
+                </label>
+                <div className="relative group">
+                  <User className="absolute left-3.5 top-3 h-5 w-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                  <Input
+                    type="email"
+                    placeholder="admin@cumita.com"
+                    className="pl-11 h-12 rounded-xl bg-zinc-100/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus-visible:ring-primary focus-visible:border-primary transition-all"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Kata Sandi
+                  </label>
+                </div>
+                <div className="relative group">
+                  <Lock className="absolute left-3.5 top-3 h-5 w-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                  <Input
+                    type="password"
+                    placeholder="••••••••"
+                    className="pl-11 h-12 rounded-xl bg-zinc-100/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus-visible:ring-primary focus-visible:border-primary transition-all"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 rounded-xl text-base font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all group" 
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                  Memproses...
+                </div>
+              ) : (
+                <div className="flex items-center justify-center gap-2">
+                  Masuk ke Dasbor
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              )}
+            </Button>
+          </form>
+
+          <div className="text-center">
+            <p className="text-xs font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+              Area Terbatas (Restricted)
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
