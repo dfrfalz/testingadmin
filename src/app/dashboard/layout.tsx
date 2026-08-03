@@ -12,7 +12,8 @@ import {
   Bell,
   Utensils,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  CalendarClock
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ const sidebarLinks = [
   { name: "Menu", href: "/dashboard/menu", icon: Utensils },
   { name: "Pesan", href: "/dashboard/message", icon: MessageSquare },
   { name: "Pelanggan", href: "/dashboard/pelanggan", icon: Users },
+  { name: "Jadwal", href: "/dashboard/jadwal", icon: CalendarClock },
   { name: "Pengaturan", href: "/dashboard/pengaturan", icon: Settings },
 ];
 
