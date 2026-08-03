@@ -180,14 +180,25 @@ export default function MenuModal({
 
               {/* Basic Info */}
               <div className="w-full sm:w-2/3 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Nama Menu</label>
-                  <Input 
-                    required 
-                    value={formData.name} 
-                    onChange={e => setFormData({...formData, name: e.target.value})} 
-                    placeholder="Contoh: Cumi Sambal Merah"
-                  />
+                <div className="flex gap-4">
+                  <div className="flex-[2]">
+                    <label className="block text-sm font-medium mb-1">Nama Menu</label>
+                    <Input 
+                      required 
+                      value={formData.name} 
+                      onChange={e => setFormData({...formData, name: e.target.value})} 
+                      placeholder="Contoh: Cumi Sambal Merah"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium mb-1">Folder (Kategori)</label>
+                    <Input 
+                      required 
+                      value={formData.category} 
+                      onChange={e => setFormData({...formData, category: e.target.value})} 
+                      placeholder="Contoh: Sambal Merah"
+                    />
+                  </div>
                 </div>
                 
                 <div className="flex gap-4">
