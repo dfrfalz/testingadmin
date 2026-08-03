@@ -68,8 +68,7 @@ export default function PengaturanPage() {
     
     const { error } = await supabase
       .from('store_settings')
-      .upsert({
-        id: 'default',
+      .update({
         store_name: settings.storeName,
         store_whatsapp: settings.whatsapp,
         store_address: settings.address,
@@ -79,7 +78,8 @@ export default function PengaturanPage() {
         notification_new_order: settings.notificationNewOrder,
         notification_new_chat: settings.notificationNewChat,
         updated_at: new Date().toISOString(),
-      });
+      })
+      .eq('id', 'default');
 
     if (error) {
       toast.error("Gagal menyimpan pengaturan.");
