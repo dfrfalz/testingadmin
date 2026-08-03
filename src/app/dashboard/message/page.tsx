@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, User, Headset, MessageSquare, Clock } from "lucide-react";
+import { Send, User, Headset, MessageSquare, Clock, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 
@@ -156,7 +156,7 @@ export default function AdminMessagePage() {
     <div className="flex h-[calc(100vh-8rem)] -m-4 sm:-m-6 lg:-m-8 bg-white dark:bg-zinc-900 border-t dark:border-zinc-800">
       
       {/* Sidebar Chat List */}
-      <div className="w-80 border-r border-zinc-200 dark:border-zinc-800 flex flex-col bg-zinc-50 dark:bg-zinc-950">
+      <div className={`${selectedOrderId ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-zinc-200 dark:border-zinc-800 flex-col bg-zinc-50 dark:bg-zinc-950 shrink-0`}>
         <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
           <h2 className="font-bold text-lg text-zinc-900 dark:text-white flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-primary" />
@@ -209,13 +209,21 @@ export default function AdminMessagePage() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-zinc-900">
+      <div className={`${!selectedOrderId ? 'hidden md:flex' : 'flex'} flex-1 flex-col bg-white dark:bg-zinc-900 w-full`}>
         {selectedOrderId ? (
           <>
             {/* Header */}
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between shadow-sm z-10">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="md:hidden h-9 w-9 shrink-0 text-zinc-500"
+                  onClick={() => setSelectedOrderId(null)}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                   <User className="h-5 w-5 text-primary" />
                 </div>
                 <div>
