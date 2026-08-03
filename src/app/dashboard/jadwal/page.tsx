@@ -149,7 +149,7 @@ export default function JadwalPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <CalendarClock className="h-5 w-5 text-primary" /> Status Pre-Order (PO)
+                  <CalendarClock className="h-5 w-5 text-primary" /> Status Pre-Order
                 </CardTitle>
                 <CardDescription className="mt-1">
                   Buka atau tutup pemesanan PO saat ini.
@@ -180,7 +180,7 @@ export default function JadwalPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="space-y-3 flex flex-col bg-zinc-50/50 dark:bg-zinc-900/20 p-5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
-                <Label htmlFor="poStartDate" className="text-sm font-semibold">Mulai PO (Opsional)</Label>
+                <Label htmlFor="poStartDate" className="text-sm font-semibold">Mulai Pre-Order</Label>
                 <DatePicker 
                   date={settings.poStartDate} 
                   setDate={(d) => setSettings(p => ({...p, poStartDate: d}))} 
@@ -189,7 +189,7 @@ export default function JadwalPage() {
                 <p className="text-xs text-zinc-500">Kapan pre-order ini mulai dibuka untuk pelanggan.</p>
               </div>
               <div className="space-y-3 flex flex-col bg-zinc-50/50 dark:bg-zinc-900/20 p-5 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
-                <Label htmlFor="poEndDate" className="text-sm font-semibold">Batas Akhir Pemesanan (Close PO)</Label>
+                <Label htmlFor="poEndDate" className="text-sm font-semibold">Batas Pre-Order</Label>
                 <DatePicker 
                   date={settings.poEndDate} 
                   setDate={(d) => setSettings(p => ({...p, poEndDate: d}))} 
@@ -219,7 +219,7 @@ export default function JadwalPage() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-3 w-full">
-              <Label htmlFor="operationalSchedule" className="text-sm font-semibold">Jadwal (Pisahkan dengan baris baru / enter)</Label>
+              <Label htmlFor="operationalSchedule" className="text-sm font-semibold">Deskripsi Jadwal</Label>
               <Textarea 
                 id="operationalSchedule" 
                 rows={5}
