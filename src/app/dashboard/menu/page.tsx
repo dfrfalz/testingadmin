@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatIDR } from "@/lib/utils";
-import { Plus, Edit2, Trash2, Archive, Flame, Search, Folder, ArrowLeft, FolderPlus } from "lucide-react";
+import { Plus, Edit2, Trash2, Archive, Flame, Search, Folder, ArrowLeft, FolderPlus, Check, X, FolderInput } from "lucide-react";
 import MenuModal, { MenuType } from "@/components/MenuModal";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,12 @@ export default function MenuPage() {
   const [deleteConfirmMenu, setDeleteConfirmMenu] = useState<number | null>(null);
   const [deleteConfirmFolder, setDeleteConfirmFolder] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Bulk Move state
+  const [selectedMenuIds, setSelectedMenuIds] = useState<number[]>([]);
+  const [isBulkMoveModalOpen, setIsBulkMoveModalOpen] = useState(false);
+  const [bulkMoveTargetFolder, setBulkMoveTargetFolder] = useState("__root__");
+  const [isMoving, setIsMoving] = useState(false);
   
   const [search, setSearch] = useState("");
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
@@ -165,6 +171,35 @@ export default function MenuPage() {
     }
   };
 
+  const toggleMenuSelection = (id: number) => {
+    setSelectedMenuIds(prev => 
+      prev.includes(id) ? prev.filter(menuId => menuId !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkMoveSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsMoving(true);
+    
+    const targetCategory = bulkMoveTargetFolder === "__root__" ? "" : bulkMoveTargetFolder;
+    
+    const { error } = await supabase
+      .from('menus')
+      .update({ category: targetCategory })
+      .in('id', selectedMenuIds);
+      
+    setIsMoving(false);
+    
+    if (error) {
+      toast.error("Gagal memindahkan menu");
+    } else {
+      toast.success(`${selectedMenuIds.length} menu berhasil dipindahkan`);
+      setIsBulkMoveModalOpen(false);
+      setSelectedMenuIds([]);
+      fetchMenusAndFolders();
+    }
+  };
+
   // Filter menus based on search and current folder
   const filteredMenus = menus.filter(m => {
     const matchSearch = m.name.toLowerCase().includes(search.toLowerCase());
@@ -264,8 +299,22 @@ export default function MenuPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {filteredMenus.map((menu) => (
-                  <Card key={menu.id} className={`overflow-hidden transition-opacity ${menu.status === 'arsip' ? 'opacity-60 grayscale-[50%]' : ''}`}>
-                    <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-800">
+                  <Card 
+                    key={menu.id} 
+                    className={`overflow-hidden transition-all duration-200 border-2 ${menu.status === 'arsip' ? 'opacity-60 grayscale-[50%]' : ''} ${selectedMenuIds.includes(menu.id) ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'}`}
+                  >
+                    <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-800 group">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleMenuSelection(menu.id); }}
+                        className={`absolute top-2 left-2 z-10 w-6 h-6 rounded flex items-center justify-center transition-all ${
+                          selectedMenuIds.includes(menu.id) 
+                            ? 'bg-primary text-white border-primary border-2 shadow-sm' 
+                            : 'bg-black/20 text-transparent border-white/70 border-2 opacity-0 group-hover:opacity-100 hover:bg-black/40'
+                        }`}
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      
                       {menu.image_url ? (
                         <img src={menu.image_url} alt={menu.name} className="w-full h-full object-cover" />
                       ) : (
@@ -443,6 +492,77 @@ export default function MenuPage() {
                 {isDeleting ? "Menghapus..." : "Ya, Hapus"}
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Action Floating Bar */}
+      {selectedMenuIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-4 rounded-full shadow-2xl z-[90] flex items-center gap-4 animate-in slide-in-from-bottom-5">
+          <span className="font-medium whitespace-nowrap">
+            {selectedMenuIds.length} menu terpilih
+          </span>
+          <div className="w-px h-6 bg-zinc-700 dark:bg-zinc-200"></div>
+          <Button 
+            onClick={() => setIsBulkMoveModalOpen(true)}
+            className="bg-primary hover:bg-primary/90 text-white rounded-full px-6"
+          >
+            Pindahkan
+          </Button>
+          <button 
+            onClick={() => setSelectedMenuIds([])}
+            className="ml-2 text-zinc-400 hover:text-white dark:text-zinc-500 dark:hover:text-zinc-900 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Bulk Move Modal */}
+      {isBulkMoveModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-zinc-200 dark:border-zinc-800">
+            <div className="flex items-center justify-between p-6 border-b border-zinc-100 dark:border-zinc-800">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <FolderInput className="w-5 h-5 text-primary" />
+                Pindahkan {selectedMenuIds.length} Menu
+              </h2>
+            </div>
+            
+            <form onSubmit={handleBulkMoveSubmit}>
+              <div className="p-6">
+                <label className="block text-sm font-medium mb-2 text-zinc-700 dark:text-zinc-300">
+                  Pilih Folder Tujuan
+                </label>
+                <select 
+                  value={bulkMoveTargetFolder}
+                  onChange={(e) => setBulkMoveTargetFolder(e.target.value)}
+                  className="w-full flex h-10 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400"
+                >
+                  <option value="__root__">-- Luar Folder (Root) --</option>
+                  {folders.map(f => (
+                    <option key={f.id} value={f.name}>{f.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="p-6 border-t border-zinc-100 dark:border-zinc-800 flex justify-end gap-3 bg-zinc-50 dark:bg-zinc-900">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsBulkMoveModalOpen(false)}
+                  disabled={isMoving}
+                >
+                  Batal
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isMoving}
+                >
+                  {isMoving ? "Memindahkan..." : "Pindahkan"}
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}
