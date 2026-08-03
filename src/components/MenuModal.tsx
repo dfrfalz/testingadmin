@@ -191,7 +191,7 @@ export default function MenuModal({
 
               {/* Basic Info */}
               <div className="w-full sm:w-2/3 space-y-4">
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-[2]">
                     <label className="block text-sm font-medium mb-1">Nama Menu</label>
                     <Input 
@@ -224,7 +224,7 @@ export default function MenuModal({
                   </div>
                 </div>
                 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">Harga</label>
                     <div className="relative">
@@ -257,7 +257,7 @@ export default function MenuModal({
                   </div>
                 </div>
 
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <label className="block text-sm font-medium mb-1">Level Pedas (0-5)</label>
                     <Input 
