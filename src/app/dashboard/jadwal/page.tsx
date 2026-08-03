@@ -8,9 +8,61 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Save, CalendarClock, Loader2, AlertCircle } from "lucide-react";
+import { Save, CalendarClock, Loader2, AlertCircle, CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+function DatePicker({
+  date,
+  setDate,
+  placeholder
+}: {
+  date: string;
+  setDate: (d: string) => void;
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  
+  let parsedDate: Date | undefined = undefined;
+  if (date) {
+    parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) parsedDate = undefined;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-full justify-start text-left font-normal bg-zinc-950/50 border-zinc-800 text-zinc-100 hover:bg-zinc-900 hover:text-white",
+            !date && "text-zinc-500"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {parsedDate ? format(parsedDate, "PPP", { locale: id }) : <span>{placeholder}</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 border-zinc-800 bg-zinc-950" align="start">
+        <Calendar
+          mode="single"
+          selected={parsedDate}
+          onSelect={(d) => {
+            setDate(d ? d.toISOString() : "");
+            setOpen(false);
+          }}
+          initialFocus
+          className="text-zinc-300"
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function JadwalPage() {
   const [loading, setLoading] = useState(true);
@@ -130,31 +182,33 @@ export default function JadwalPage() {
             ) : null}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
-              <div className="space-y-2">
+              <div className="space-y-2 flex flex-col">
                 <Label htmlFor="poStartDate">Mulai PO (Opsional)</Label>
-                <Input 
-                  id="poStartDate" 
-                  type="date"
-                  value={settings.poStartDate} 
-                  onChange={handleChange} 
+                <DatePicker 
+                  date={settings.poStartDate} 
+                  setDate={(d) => setSettings(p => ({...p, poStartDate: d}))} 
+                  placeholder="Pilih Tanggal Mulai"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 flex flex-col">
                 <Label htmlFor="poEndDate">Batas Akhir Pemesanan (Close PO)</Label>
-                <Input 
-                  id="poEndDate" 
-                  type="datetime-local"
-                  value={settings.poEndDate} 
-                  onChange={handleChange} 
-                />
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <DatePicker 
+                      date={settings.poEndDate} 
+                      setDate={(d) => setSettings(p => ({...p, poEndDate: d}))} 
+                      placeholder="Pilih Tanggal"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-zinc-500">Jam bisa ditambahkan langsung di kolom pengiriman jika perlu.</p>
               </div>
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2 md:col-span-2 flex flex-col">
                 <Label htmlFor="poDeliveryDate">Jadwal Pengiriman</Label>
-                <Input 
-                  id="poDeliveryDate" 
-                  type="date"
-                  value={settings.poDeliveryDate} 
-                  onChange={handleChange} 
+                <DatePicker 
+                  date={settings.poDeliveryDate} 
+                  setDate={(d) => setSettings(p => ({...p, poDeliveryDate: d}))} 
+                  placeholder="Pilih Tanggal Pengiriman"
                 />
               </div>
             </div>
