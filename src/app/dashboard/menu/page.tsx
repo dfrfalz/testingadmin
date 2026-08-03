@@ -21,6 +21,11 @@ export default function MenuPage() {
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [isSubmittingFolder, setIsSubmittingFolder] = useState(false);
+
+  // Delete Confirmation Modal state
+  const [deleteConfirmMenu, setDeleteConfirmMenu] = useState<number | null>(null);
+  const [deleteConfirmFolder, setDeleteConfirmFolder] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const [search, setSearch] = useState("");
   const [currentFolder, setCurrentFolder] = useState<string | null>(null);
@@ -84,14 +89,22 @@ export default function MenuPage() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus menu ini?")) return;
+  const confirmDeleteMenu = (id: number) => {
+    setDeleteConfirmMenu(id);
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirmMenu === null) return;
+    setIsDeleting(true);
     
-    const { error } = await supabase.from('menus').delete().eq('id', id);
+    const { error } = await supabase.from('menus').delete().eq('id', deleteConfirmMenu);
+    setIsDeleting(false);
+    
     if (error) {
       toast.error("Gagal menghapus menu");
     } else {
       toast.success("Menu berhasil dihapus");
+      setDeleteConfirmMenu(null);
     }
   };
 
@@ -127,19 +140,27 @@ export default function MenuPage() {
     }
   };
 
-  const handleDeleteFolder = async (folderName: string, e: React.MouseEvent) => {
+  const confirmDeleteFolder = (folderName: string, e: React.MouseEvent) => {
     e.stopPropagation(); // prevent clicking folder
-    if (!confirm(`Hapus folder "${folderName}"? (Menu di dalamnya tidak akan terhapus, hanya akan keluar dari folder)`)) return;
+    setDeleteConfirmFolder(folderName);
+  };
+
+  const handleDeleteFolder = async () => {
+    if (!deleteConfirmFolder) return;
+    setIsDeleting(true);
     
     // Set category of menus in this folder to empty string first
-    await supabase.from('menus').update({ category: '' }).eq('category', folderName);
+    await supabase.from('menus').update({ category: '' }).eq('category', deleteConfirmFolder);
     
     // Then delete folder
-    const { error } = await supabase.from('folders').delete().eq('name', folderName);
+    const { error } = await supabase.from('folders').delete().eq('name', deleteConfirmFolder);
+    setIsDeleting(false);
+    
     if (error) {
       toast.error("Gagal menghapus folder");
     } else {
       toast.success("Folder berhasil dihapus");
+      setDeleteConfirmFolder(null);
       fetchMenusAndFolders();
     }
   };
@@ -221,7 +242,7 @@ export default function MenuPage() {
                     <span className="font-medium text-sm text-center truncate w-full">{folder.name}</span>
                     
                     <button 
-                      onClick={(e) => handleDeleteFolder(folder.name, e)}
+                      onClick={(e) => confirmDeleteFolder(folder.name, e)}
                       className="absolute top-2 right-2 p-1.5 bg-red-50 text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -290,7 +311,7 @@ export default function MenuPage() {
                         >
                           <Archive className="w-3 h-3" /> {menu.status === 'aktif' ? 'Arsip' : 'Aktif'}
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={() => handleDelete(menu.id)} className="gap-1">
+                        <Button variant="destructive" size="sm" onClick={() => confirmDeleteMenu(menu.id)} className="gap-1">
                           <Trash2 className="w-3 h-3" /> Hapus
                         </Button>
                       </div>
@@ -352,6 +373,76 @@ export default function MenuPage() {
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Menu Confirmation Modal */}
+      {deleteConfirmMenu !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-zinc-200 dark:border-zinc-800 text-center">
+            <div className="p-6">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Hapus Menu?</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Apakah Anda yakin ingin menghapus menu ini secara permanen? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-3 bg-zinc-50 dark:bg-zinc-900">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setDeleteConfirmMenu(null)}
+                disabled={isDeleting}
+              >
+                Batal
+              </Button>
+              <Button 
+                variant="destructive"
+                className="flex-1"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Folder Confirmation Modal */}
+      {deleteConfirmFolder !== null && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white dark:bg-zinc-950 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-zinc-200 dark:border-zinc-800 text-center">
+            <div className="p-6">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-red-500" />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Hapus Folder?</h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Apakah Anda yakin ingin menghapus folder <strong>"{deleteConfirmFolder}"</strong>? Menu di dalamnya tidak akan terhapus, hanya akan dikeluarkan dari folder.
+              </p>
+            </div>
+            <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-3 bg-zinc-50 dark:bg-zinc-900">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setDeleteConfirmFolder(null)}
+                disabled={isDeleting}
+              >
+                Batal
+              </Button>
+              <Button 
+                variant="destructive"
+                className="flex-1"
+                onClick={handleDeleteFolder}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Menghapus..." : "Ya, Hapus"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
