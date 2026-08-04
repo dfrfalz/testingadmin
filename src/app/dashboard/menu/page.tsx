@@ -266,7 +266,7 @@ export default function MenuPage() {
           {/* FOLDERS GRID (Only at root) */}
           {currentFolder === null && filteredFolders.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-4">Folders</h2>
+              <h2 className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">Folders</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 {filteredFolders.map(folder => (
                   <div 
@@ -291,7 +291,7 @@ export default function MenuPage() {
 
           {/* MENUS GRID */}
           <div>
-            {currentFolder === null && <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider mb-4">Files (Menu)</h2>}
+            {currentFolder === null && <h2 className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">Files (Menu)</h2>}
             
             {filteredMenus.length === 0 ? (
               <div className="bg-white dark:bg-zinc-900 rounded-xl p-12 text-center border border-zinc-200 dark:border-zinc-800 text-zinc-500">
