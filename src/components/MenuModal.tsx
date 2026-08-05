@@ -29,6 +29,7 @@ export type MenuType = {
   serving_prep: string;
   stock: number;
   status: string;
+  deleted_at?: string;
 };
 
 export default function MenuModal({
