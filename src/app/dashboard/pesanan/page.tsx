@@ -31,6 +31,7 @@ export default function PesananPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
 
   useEffect(() => {
     async function fetchOrders() {
@@ -74,6 +75,30 @@ export default function PesananPage() {
       console.error(error);
     } else {
       toast.success("Status pesanan berhasil diubah");
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedOrderIds.length === 0) {
+      toast.error("Silakan pilih pesanan terlebih dahulu dengan mencentang kotak di sebelah kiri.");
+      return;
+    }
+    
+    // Update state local
+    setOrders(current => current.map(o => selectedOrderIds.includes(o.id) ? { ...o, status: newStatus } : o));
+
+    // Update Supabase
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .in('id', selectedOrderIds);
+
+    if (error) {
+      toast.error("Gagal mengubah status pesanan terpilih");
+      console.error(error);
+    } else {
+      toast.success(`${selectedOrderIds.length} pesanan berhasil diubah menjadi ${newStatus}`);
+      setSelectedOrderIds([]); // Reset selection
     }
   };
 
@@ -161,7 +186,21 @@ export default function PesananPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="default" className="gap-2 bg-primary hover:bg-primary/90 text-white" disabled={selectedOrderIds.length === 0}>
+                    Ubah Status {selectedOrderIds.length > 0 ? `(${selectedOrderIds.length})` : ''} <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => handleBulkStatusChange("Pesanan Baru")}>Pesanan Baru</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkStatusChange("Diterima")}>Diterima</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkStatusChange("Dalam Perjalanan")}>Dalam Perjalanan</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkStatusChange("Selesai")}>Selesai</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleBulkStatusChange("Dibatalkan")} className="text-red-500 focus:text-red-500">Dibatalkan</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button variant="outline" className="gap-2">
                 <Filter className="h-4 w-4" /> Filter Status
               </Button>
@@ -173,9 +212,23 @@ export default function PesananPage() {
             <table className="w-full text-sm text-left whitespace-nowrap">
               <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 border-y border-zinc-200 dark:bg-zinc-900/50 dark:text-zinc-400 dark:border-zinc-800">
                 <tr>
+                  <th className="px-4 py-3 w-10 text-center">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 rounded border-zinc-300 text-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 cursor-pointer"
+                      checked={filteredOrders.length > 0 && selectedOrderIds.length === filteredOrders.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedOrderIds(filteredOrders.map(o => o.id));
+                        } else {
+                          setSelectedOrderIds([]);
+                        }
+                      }}
+                    />
+                  </th>
                   <th className="px-4 py-3 font-medium">ID Pesanan</th>
                   <th className="px-4 py-3 font-medium">Pelanggan</th>
-                  <th className="px-4 py-3 font-medium">Item</th>
+                  <th className="px-4 py-3 font-medium">Item Pembelian</th>
                   <th className="px-4 py-3 font-medium">Waktu</th>
                   <th className="px-4 py-3 font-medium">Total</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -185,7 +238,7 @@ export default function PesananPage() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={8} className="px-4 py-8 text-center text-zinc-500">
                       <div className="flex flex-col items-center justify-center">
                         <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-primary mb-2"></div>
                         Memuat data pesanan...
@@ -194,7 +247,7 @@ export default function PesananPage() {
                   </tr>
                 ) : filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-zinc-500">
+                    <td colSpan={8} className="px-4 py-8 text-center text-zinc-500">
                       {orders.length === 0 ? "Belum ada pesanan yang masuk." : "Tidak ada pesanan yang sesuai dengan pencarian Anda."}
                     </td>
                   </tr>
@@ -210,6 +263,20 @@ export default function PesananPage() {
 
                     return (
                       <tr key={order.id} className="border-b border-zinc-100 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50 transition-colors">
+                        <td className="px-4 py-3 text-center">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-zinc-300 text-primary focus:ring-primary dark:border-zinc-700 dark:bg-zinc-800 cursor-pointer"
+                            checked={selectedOrderIds.includes(order.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedOrderIds(prev => [...prev, order.id]);
+                              } else {
+                                setSelectedOrderIds(prev => prev.filter(id => id !== order.id));
+                              }
+                            }}
+                          />
+                        </td>
                         <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{order.short_id}</td>
                         <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">
                           <div>{order.customer_name}</div>

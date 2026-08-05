@@ -57,6 +57,7 @@ export default function MenuModal({
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [folders, setFolders] = useState<string[]>([]);
+  const [ingredientInput, setIngredientInput] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -85,6 +86,7 @@ export default function MenuModal({
       });
       setPreviewUrl("");
       setFile(null);
+      setIngredientInput("");
     }
   }, [menu, isOpen]);
 
@@ -328,12 +330,55 @@ export default function MenuModal({
             
             <div>
               <label className="block text-sm font-medium mb-1">Bahan-bahan (Opsional)</label>
-              <textarea 
-                className="w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:border-primary dark:border-zinc-800 dark:bg-zinc-950 resize-none h-20"
-                value={formData.ingredients || ""} 
-                onChange={e => setFormData({...formData, ingredients: e.target.value})} 
-                placeholder="Cumi segar, Cabai..."
-              />
+              <div className="w-full flex flex-wrap gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm focus-within:border-primary dark:border-zinc-800 dark:bg-zinc-950 min-h-[80px] items-start content-start">
+                {(() => {
+                  const ingredientsList = formData.ingredients ? formData.ingredients.split(',').map(s => s.trim()).filter(Boolean) : [];
+                  return (
+                    <>
+                      {ingredientsList.map((ing, i) => (
+                        <div key={i} className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md text-sm">
+                          <span>{ing}</span>
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              const newList = ingredientsList.filter((_, index) => index !== i);
+                              setFormData({...formData, ingredients: newList.join(', ')});
+                            }}
+                            className="text-zinc-500 hover:text-red-500 ml-1 focus:outline-none"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                      <input 
+                        type="text" 
+                        className="flex-1 min-w-[150px] bg-transparent outline-none h-7" 
+                        placeholder={ingredientsList.length === 0 ? "Ketik lalu tekan koma (,) atau Enter..." : ""}
+                        value={ingredientInput}
+                        onChange={(e) => setIngredientInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === ',' || e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = ingredientInput.trim();
+                            if (val) {
+                              if (!ingredientsList.includes(val)) {
+                                setFormData({...formData, ingredients: [...ingredientsList, val].join(', ')});
+                              }
+                              setIngredientInput("");
+                            }
+                          } else if (e.key === 'Backspace' && !ingredientInput && ingredientsList.length > 0) {
+                            e.preventDefault();
+                            const newList = [...ingredientsList];
+                            newList.pop();
+                            setFormData({...formData, ingredients: newList.join(', ')});
+                          }
+                        }}
+                      />
+                    </>
+                  );
+                })()}
+              </div>
+              <p className="text-xs text-zinc-500 mt-1">Tekan <kbd className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">koma (,)</kbd> atau <kbd className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">Enter</kbd> untuk menambahkan.</p>
             </div>
           </form>
         </div>
