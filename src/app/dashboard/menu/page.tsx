@@ -452,7 +452,7 @@ export default function MenuPage() {
               </div>
               <h2 className="text-xl font-bold mb-2">Hapus Menu?</h2>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Apakah Anda yakin ingin menghapus menu ini secara permanen? Tindakan ini tidak dapat dibatalkan.
+                Apakah Anda yakin ingin memindahkan menu ini ke Keranjang Sampah? Menu akan dihapus permanen setelah 3 hari.
               </p>
             </div>
             <div className="flex border-t border-zinc-200 dark:border-zinc-800 overflow-hidden rounded-b-2xl">
