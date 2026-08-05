@@ -20,6 +20,7 @@ export default function AdminMessagePage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'cs' | 'ord'>('all');
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -136,6 +137,13 @@ export default function AdminMessagePage() {
 
   const activeMessages = messages.filter(m => m.order_id === selectedOrderId);
 
+  const filteredChatGroups = chatGroups.filter(group => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'cs') return group.orderId.startsWith('CS-');
+    if (activeTab === 'ord') return group.orderId.startsWith('ORD-') || !group.orderId.startsWith('CS-');
+    return true;
+  });
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedOrderId) return;
@@ -157,11 +165,31 @@ export default function AdminMessagePage() {
       
       {/* Sidebar Chat List */}
       <div className={`${selectedOrderId ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-zinc-200 dark:border-zinc-800 flex-col bg-zinc-50 dark:bg-zinc-950 shrink-0`}>
-        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col gap-3">
           <h2 className="font-bold text-lg text-zinc-900 dark:text-white flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-primary" />
             Kotak Masuk
           </h2>
+          <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg">
+            <button 
+              className={`flex-1 text-xs py-1.5 px-2 rounded-md transition-all duration-200 ${activeTab === 'all' ? 'bg-white dark:bg-zinc-700 shadow-sm font-semibold text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+              onClick={() => setActiveTab('all')}
+            >
+              Semua
+            </button>
+            <button 
+              className={`flex-1 text-xs py-1.5 px-2 rounded-md transition-all duration-200 ${activeTab === 'cs' ? 'bg-white dark:bg-zinc-700 shadow-sm font-semibold text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+              onClick={() => setActiveTab('cs')}
+            >
+              CS
+            </button>
+            <button 
+              className={`flex-1 text-xs py-1.5 px-2 rounded-md transition-all duration-200 ${activeTab === 'ord' ? 'bg-white dark:bg-zinc-700 shadow-sm font-semibold text-zinc-900 dark:text-white' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}
+              onClick={() => setActiveTab('ord')}
+            >
+              Order
+            </button>
+          </div>
         </div>
         
         <div className="flex-1 overflow-y-auto">
@@ -169,12 +197,12 @@ export default function AdminMessagePage() {
             <div className="flex justify-center p-8">
               <div className="h-6 w-6 animate-spin rounded-full border-4 border-zinc-300 border-t-primary"></div>
             </div>
-          ) : chatGroups.length === 0 ? (
+          ) : filteredChatGroups.length === 0 ? (
             <div className="p-8 text-center text-sm text-zinc-500">
-              Belum ada pesan masuk.
+              Belum ada pesan masuk di kategori ini.
             </div>
           ) : (
-            chatGroups.map((group) => (
+            filteredChatGroups.map((group) => (
               <div 
                 key={group.orderId}
                 onClick={() => {
