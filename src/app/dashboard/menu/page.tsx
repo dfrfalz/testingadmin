@@ -298,7 +298,7 @@ export default function MenuPage() {
                 {currentFolder ? "Folder ini kosong." : "Belum ada menu di luar folder."}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                 {filteredMenus.map((menu) => (
                   <Card 
                     key={menu.id} 
