@@ -110,7 +110,7 @@ export default function TrashPage() {
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl flex gap-3 text-amber-800 dark:text-amber-400 text-sm">
         <AlertCircle className="w-5 h-5 shrink-0" />
         <p>
-          Fitur ini bergantung pada kolom <code>deleted_at</code> di database Anda. Menu yang Anda hapus sementara akan tersimpan di sini.
+          <strong>Peringatan:</strong> Menu yang ada di sini akan otomatis terhapus secara permanen setelah 3 hari. Sebelum batas waktu tersebut, Anda masih bisa memulihkannya.
         </p>
       </div>
 
