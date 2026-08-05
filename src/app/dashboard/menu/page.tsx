@@ -10,6 +10,7 @@ import MenuModal, { MenuType } from "@/components/MenuModal";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 export default function MenuPage() {
   const [menus, setMenus] = useState<MenuType[]>([]);
@@ -39,8 +40,13 @@ export default function MenuPage() {
 
   const fetchMenusAndFolders = async () => {
     setLoading(true);
+
+    // Auto-cleanup items in trash > 3 days
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    await supabase.from('menus').delete().not('deleted_at', 'is', null).lt('deleted_at', threeDaysAgo);
+
     const [menuRes, folderRes] = await Promise.all([
-      supabase.from('menus').select('*').order('id', { ascending: true }),
+      supabase.from('menus').select('*').is('deleted_at', null).order('id', { ascending: true }),
       supabase.from('folders').select('*').order('name', { ascending: true })
     ]);
       
@@ -104,13 +110,13 @@ export default function MenuPage() {
     if (deleteConfirmMenu === null) return;
     setIsDeleting(true);
     
-    const { error } = await supabase.from('menus').delete().eq('id', deleteConfirmMenu);
+    const { error } = await supabase.from('menus').update({ deleted_at: new Date().toISOString() }).eq('id', deleteConfirmMenu);
     setIsDeleting(false);
     
     if (error) {
-      toast.error("Gagal menghapus menu");
+      toast.error("Gagal memindahkan menu ke tong sampah");
     } else {
-      toast.success("Menu berhasil dihapus");
+      toast.success("Menu berhasil dipindahkan ke tong sampah");
       setDeleteConfirmMenu(null);
     }
   };
@@ -238,9 +244,15 @@ export default function MenuPage() {
               Buat Folder
             </Button>
           )}
+          <Link href="/dashboard/menu/trash">
+            <Button variant="secondary" className="gap-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700">
+              <Trash2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Keranjang Sampah</span>
+            </Button>
+          </Link>
           <Button onClick={handleAdd} className="gap-2">
             <Plus className="w-4 h-4" />
-            Tambah Menu
+            <span className="hidden sm:inline">Tambah Menu</span>
           </Button>
         </div>
       </div>
