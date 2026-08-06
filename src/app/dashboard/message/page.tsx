@@ -23,6 +23,7 @@ export default function AdminMessagePage() {
   const [activeTab, setActiveTab] = useState<'all' | 'cs' | 'ord'>('all');
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [logoUrl, setLogoUrl] = useState("/logo_cumita.png");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -32,6 +33,16 @@ export default function AdminMessagePage() {
   // Fetch all chats initially
   useEffect(() => {
     const fetchAllMessages = async () => {
+      // Fetch logo
+      const { data: settingsData } = await supabase
+        .from('store_settings')
+        .select('logo_light_url')
+        .eq('id', 'default')
+        .single();
+      if (settingsData?.logo_light_url) {
+        setLogoUrl(settingsData.logo_light_url);
+      }
+
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -91,7 +102,10 @@ export default function AdminMessagePage() {
         const newMsg = payload.new;
         
         // Update messages array
-        setMessages(prev => [...prev, newMsg]);
+        setMessages(prev => {
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
         
         // Check if group exists, if not fetch the name
         let custName = 'Pelanggan';
@@ -270,8 +284,8 @@ export default function AdminMessagePage() {
                 return (
                   <div key={msg.id} className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex gap-3 max-w-[75%] ${isAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${isAdmin ? 'bg-primary text-white' : 'bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300'}`}>
-                        {isAdmin ? <img src="/logo_cumita.png" className="h-5 w-5 object-contain" alt="Admin" /> : <User className="h-4 w-4" />}
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm overflow-hidden ${isAdmin ? 'bg-primary text-white' : 'bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300'}`}>
+                        {isAdmin ? <img src={logoUrl} className="h-full w-full object-contain" alt="Admin" /> : <User className="h-4 w-4" />}
                       </div>
                       <div className={`flex flex-col ${isAdmin ? 'items-end' : 'items-start'}`}>
                         <div className={`px-4 py-2.5 rounded-2xl shadow-sm ${

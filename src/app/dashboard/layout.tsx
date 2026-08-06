@@ -13,7 +13,12 @@ import {
   Utensils,
   MessageSquare,
   BarChart3,
-  CalendarClock
+  CalendarClock,
+  Image as ImageIcon,
+  Palette,
+  Image,
+  MapPin,
+  LayoutTemplate
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -29,8 +34,30 @@ const sidebarLinks = [
   { name: "Pesan", href: "/dashboard/message", icon: MessageSquare },
   { name: "Pelanggan", href: "/dashboard/pelanggan", icon: Users },
   { name: "Jadwal", href: "/dashboard/jadwal", icon: CalendarClock },
+  { name: "Edit Website", href: "/dashboard/edit-website", icon: LayoutTemplate },
   { name: "Pengaturan", href: "/dashboard/pengaturan", icon: Settings },
 ];
+
+const pageTitles: Record<string, string> = {
+  "/dashboard": "Dasbor",
+  "/dashboard/statistik": "Statistik",
+  "/dashboard/pesanan": "Pesanan",
+  "/dashboard/menu": "Menu",
+  "/dashboard/message": "Pesan",
+  "/dashboard/pelanggan": "Pelanggan",
+  "/dashboard/jadwal": "Jadwal",
+  "/dashboard/edit-website": "Edit Website",
+  "/dashboard/banner": "Pengaturan Banner",
+  "/dashboard/tema": "Tema Warna",
+  "/dashboard/logo": "Pengaturan Logo",
+  "/dashboard/maps": "Pengaturan Maps",
+  "/dashboard/font": "Tipografi (Font)",
+  "/dashboard/kontak": "Sosial Media & Kontak",
+  "/dashboard/pengumuman": "Pengaturan Teks Pengumuman",
+  "/dashboard/seo": "SEO & Pencarian",
+  "/dashboard/faq": "FAQ (Tanya Jawab)",
+  "/dashboard/pengaturan": "Pengaturan",
+};
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -38,6 +65,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [logoLight, setLogoLight] = useState("/logo_cumita.png");
+  const [logoDark, setLogoDark] = useState("/logo_tema_gelap.png");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -45,12 +74,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (!session) {
         router.push("/login");
       } else {
+        // Fetch custom logos
+        const { data: settingsData } = await supabase
+          .from('store_settings')
+          .select('logo_light_url, logo_dark_url')
+          .eq('id', 'default')
+          .single();
+        
+        if (settingsData) {
+          if (settingsData.logo_light_url) setLogoLight(settingsData.logo_light_url);
+          if (settingsData.logo_dark_url) setLogoDark(settingsData.logo_dark_url);
+        }
         setIsLoadingAuth(false);
       }
     };
+
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Listen for instant logo updates from LogoPage
+    const handleLogoUpdate = (e: any) => {
+      if (e.detail?.logoLightUrl) setLogoLight(e.detail.logoLightUrl);
+      if (e.detail?.logoDarkUrl) setLogoDark(e.detail.logoDarkUrl);
+    };
+
+    window.addEventListener('logo-updated', handleLogoUpdate);
+
+    const authListener = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         router.push("/login");
       }
@@ -106,9 +155,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-20 items-center justify-center border-b border-zinc-200 dark:border-zinc-800 py-4">
-          <img src="/logo_cumita.png" alt="Cumita Logo" className="h-14 w-auto object-contain dark:hidden drop-shadow-md" />
-          <img src="/logo_tema_gelap.png" alt="Cumita Logo" className="h-14 w-auto object-contain hidden dark:block drop-shadow-md" />
+        <div className="p-6">
+          <Link href="/dashboard" className="flex items-center gap-2 justify-center py-2 mb-2 hover:opacity-80 transition-opacity">
+            <img src={logoLight} alt="Cumita Logo" className="h-14 w-auto object-contain dark:hidden drop-shadow-md" />
+            <img src={logoDark} alt="Cumita Logo" className="h-14 w-auto object-contain hidden dark:block drop-shadow-md" />
+          </Link>
         </div>
 
         <nav className="p-4 space-y-1">
@@ -120,7 +171,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={link.name}
                 href={link.href}
                 className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive 
+                  (isActive || (link.href === "/dashboard/edit-website" && ["/dashboard/banner", "/dashboard/tema", "/dashboard/logo", "/dashboard/maps"].includes(pathname)))
                     ? "bg-primary/10 text-primary" 
                     : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50"
                 }`}
@@ -156,7 +207,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Menu className="h-6 w-6" />
             </button>
             <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-              {sidebarLinks.find(l => l.href === pathname)?.name || "Dasbor"}
+              {pageTitles[pathname] || "Dasbor"}
             </h2>
           </div>
 
