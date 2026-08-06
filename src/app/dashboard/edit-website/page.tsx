@@ -99,7 +99,7 @@ export default function EditWebsitePage() {
                     <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors flex justify-between items-center gap-2">
                       <span className="flex items-center gap-2">
                         {option.title}
-                        {option.isComingSoon && (
+                        {(option as any).isComingSoon && (
                           <span className="text-[10px] font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Segera</span>
                         )}
                       </span>

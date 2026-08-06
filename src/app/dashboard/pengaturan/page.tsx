@@ -304,7 +304,7 @@ export default function PengaturanPage() {
                             <Label className="text-xs font-medium text-zinc-500">Bank / E-Wallet</Label>
                             <Select
                               value={pm.bankName}
-                              onValueChange={(val) => handlePaymentMethodChange(index, 'bankName', val)}
+                              onValueChange={(val) => handlePaymentMethodChange(index, 'bankName', val || '')}
                             >
                               <SelectTrigger className="w-full bg-transparent shadow-none border-zinc-200 dark:border-zinc-800">
                                 <SelectValue placeholder="Pilih..." />

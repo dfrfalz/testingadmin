@@ -122,7 +122,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return () => {
       supabase.removeChannel(channel);
-      subscription.unsubscribe();
     };
   }, [router]);
 
