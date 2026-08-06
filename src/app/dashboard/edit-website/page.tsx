@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle } from "lucide-react";
+import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Sparkles, ListOrdered } from "lucide-react";
 
 const editOptions = [
   {
@@ -67,6 +67,20 @@ const editOptions = [
     icon: HelpCircle,
     href: "/dashboard/faq",
     color: "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+  },
+  {
+    title: "Keunggulan",
+    description: "Ubah teks sub-judul dan daftar keunggulan produk (Kenapa Memilih Kami).",
+    icon: Sparkles,
+    href: "/dashboard/keunggulan",
+    color: "bg-fuchsia-500/10 text-fuchsia-500 border border-fuchsia-500/20"
+  },
+  {
+    title: "Cara Pesan",
+    description: "Ubah teks sub-judul, judul, dan langkah-langkah pemesanan (Cara Mudah Pesan).",
+    icon: ListOrdered,
+    href: "/dashboard/cara-pesan",
+    color: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20"
   }
 ];
 
