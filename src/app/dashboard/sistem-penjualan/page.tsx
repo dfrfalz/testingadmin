@@ -2,11 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  CheckCircle2,
   Loader2,
   ShoppingBag,
   CalendarClock,
@@ -17,150 +24,290 @@ import {
   Users,
   Sliders,
   ArrowLeft,
-  Terminal,
-  Copy,
-  Check,
+  CalendarIcon,
+  Save,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 
-type SellingSystem = {
-  id: string;
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type SystemId =
+  | "ready_stock"
+  | "po"
+  | "mto"
+  | "open_order"
+  | "booking"
+  | "subscription"
+  | "grosir"
+  | "custom";
+
+type SystemDef = {
+  id: SystemId;
   name: string;
   description: string;
   icon: React.ElementType;
-  color: string;
-  scheduleNote: string;
 };
 
-const sellingSystems: SellingSystem[] = [
-  {
-    id: "ready_stock",
-    name: "Ready Stock",
-    description: "Produk sudah tersedia dan bisa langsung dibeli.",
-    icon: ShoppingBag,
-    color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    scheduleNote: "Halaman jadwal akan menampilkan status buka/tutup toko dan jam operasional."
-  },
-  {
-    id: "po",
-    name: "Pre-Order (PO)",
-    description: "Produk dibuat atau diproses setelah ada pesanan, biasanya mengikuti jadwal tertentu.",
-    icon: CalendarClock,
-    color: "bg-primary/10 text-primary border-primary/20",
-    scheduleNote: "Halaman jadwal tetap sama — menampilkan Mulai PO, Batas PO, dan Jadwal Pengiriman."
-  },
-  {
-    id: "mto",
-    name: "Made to Order (MTO)",
-    description: "Produk dibuat setelah pelanggan memesan dan langsung diproses, tanpa menunggu periode PO.",
-    icon: Hammer,
-    color: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    scheduleNote: "Halaman jadwal menampilkan status penerimaan pesanan dan estimasi waktu proses."
-  },
-  {
-    id: "open_order",
-    name: "Open Order (OO)",
-    description: "Pemesanan dibuka dalam periode atau kuota tertentu, lalu ditutup saat kuota terpenuhi.",
-    icon: RefreshCw,
-    color: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    scheduleNote: "Halaman jadwal menampilkan periode pemesanan, kuota, dan status slot."
-  },
-  {
-    id: "booking",
-    name: "Booking / Reservasi",
-    description: "Pelanggan memesan dan mengamankan stok terlebih dahulu, biasanya dengan DP.",
-    icon: BookMarked,
-    color: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    scheduleNote: "Halaman jadwal menampilkan jadwal pengambilan/pengiriman dan info DP."
-  },
-  {
-    id: "subscription",
-    name: "Subscription / Langganan",
-    description: "Pelanggan berlangganan dan menerima produk secara berkala (mingguan/bulanan).",
-    icon: Repeat2,
-    color: "bg-teal-500/10 text-teal-500 border-teal-500/20",
-    scheduleNote: "Halaman jadwal menampilkan jadwal pengiriman berkala dan periode berlangganan."
-  },
-  {
-    id: "grosir",
-    name: "Grosir / Reseller",
-    description: "Penjualan dengan harga khusus berdasarkan jumlah pembelian.",
-    icon: Users,
-    color: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-    scheduleNote: "Halaman jadwal menampilkan jam operasional dan info pemesanan grosir."
-  },
-  {
-    id: "custom",
-    name: "Custom Order",
-    description: "Pelanggan dapat menyesuaikan pesanan, misalnya tingkat pedas, ukuran, atau varian.",
-    icon: Sliders,
-    color: "bg-rose-500/10 text-rose-500 border-rose-500/20",
-    scheduleNote: "Halaman jadwal menampilkan info kustomisasi yang tersedia dan jam penerimaan."
-  }
+type Settings = {
+  sellingSystem: SystemId;
+  status: string; // "open" | "closed"
+  startDate: string;
+  endDate: string;
+  deliveryDate: string;
+  schedule: string; // repurposed per-system
+};
+
+// ─── System Definitions ───────────────────────────────────────────────────────
+
+const systems: SystemDef[] = [
+  { id: "ready_stock", name: "Ready Stock", description: "Produk selalu tersedia, langsung dikirim.", icon: ShoppingBag },
+  { id: "po", name: "Pre-Order (PO)", description: "Pesanan dikumpulkan, lalu diproses sesuai jadwal.", icon: CalendarClock },
+  { id: "mto", name: "Made to Order (MTO)", description: "Dibuat setelah ada pesanan, tanpa jadwal PO.", icon: Hammer },
+  { id: "open_order", name: "Open Order (OO)", description: "Dibuka dalam periode atau kuota tertentu.", icon: RefreshCw },
+  { id: "booking", name: "Booking / Reservasi", description: "Pelanggan amankan stok lebih dulu dengan DP.", icon: BookMarked },
+  { id: "subscription", name: "Subscription / Langganan", description: "Pengiriman berkala — mingguan atau bulanan.", icon: Repeat2 },
+  { id: "grosir", name: "Grosir / Reseller", description: "Harga khusus berdasarkan jumlah pembelian.", icon: Users },
+  { id: "custom", name: "Custom Order", description: "Pelanggan sesuaikan pesanan sendiri.", icon: Sliders },
 ];
 
-const SQL_MIGRATION = `ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS selling_system TEXT DEFAULT 'po';`;
+// ─── DatePicker ───────────────────────────────────────────────────────────────
+
+function DatePicker({ date, setDate, placeholder }: { date: string; setDate: (d: string) => void; placeholder: string }) {
+  const [open, setOpen] = useState(false);
+  let parsedDate: Date | undefined;
+  if (date) {
+    const d = new Date(date);
+    if (!isNaN(d.getTime())) parsedDate = d;
+  }
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger className={cn(buttonVariants({ variant: "outline" }), "w-full justify-start text-left font-normal", !date && "text-zinc-500")}>
+        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+        {parsedDate ? format(parsedDate, "PPP", { locale: id }) : <span>{placeholder}</span>}
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar mode="single" selected={parsedDate} onSelect={(d) => { setDate(d ? d.toISOString() : ""); setOpen(false); }} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// ─── Settings Panel per System ────────────────────────────────────────────────
+
+function SettingsPanel({ settings, onChange }: { settings: Settings; onChange: (patch: Partial<Settings>) => void }) {
+  const sys = settings.sellingSystem;
+  const isOpen = settings.status === "open";
+
+  const StatusToggle = ({ openLabel, closedLabel }: { openLabel: string; closedLabel: string }) => (
+    <div className="flex items-center justify-between p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+      <div>
+        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Status</p>
+        <p className="text-xs text-zinc-500 mt-0.5">{isOpen ? openLabel : closedLabel}</p>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className={`text-xs font-semibold ${isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500"}`}>
+          {isOpen ? "Buka" : "Tutup"}
+        </span>
+        <Switch checked={isOpen} onCheckedChange={(v) => onChange({ status: v ? "open" : "closed" })} className="data-[state=checked]:bg-primary" />
+      </div>
+    </div>
+  );
+
+  const Field = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</Label>
+      {children}
+      {hint && <p className="text-xs text-zinc-500">{hint}</p>}
+    </div>
+  );
+
+  if (sys === "ready_stock") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Toko sedang buka — pesanan langsung diproses." closedLabel="Toko sedang tutup sementara." />
+      <Field label="Jam Operasional" hint="Tampil di footer website.">
+        <Textarea rows={4} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder={"Senin – Jumat: 09.00 – 17.00\nSabtu: 09.00 – 14.00\nMinggu: Tutup"} className="font-mono text-sm resize-none" />
+      </Field>
+    </div>
+  );
+
+  if (sys === "po") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Pre-Order sedang dibuka untuk pelanggan." closedLabel="Pre-Order sedang ditutup." />
+      <Field label="Tanggal Mulai PO" hint="Kapan periode PO ini mulai dibuka.">
+        <DatePicker date={settings.startDate} setDate={(d) => onChange({ startDate: d })} placeholder="Pilih tanggal mulai" />
+      </Field>
+      <Field label="Batas Pemesanan" hint="Tenggat terakhir pelanggan dapat memesan.">
+        <DatePicker date={settings.endDate} setDate={(d) => onChange({ endDate: d })} placeholder="Pilih tanggal tutup" />
+      </Field>
+      <Field label="Jadwal Pengiriman" hint="Kapan pesanan mulai didistribusikan.">
+        <DatePicker date={settings.deliveryDate} setDate={(d) => onChange({ deliveryDate: d })} placeholder="Pilih tanggal pengiriman" />
+      </Field>
+      <Field label="Catatan PO" hint="Informasi tambahan yang ditampilkan ke pelanggan.">
+        <Textarea rows={3} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: Minimal order 2 pcs. Pembayaran full di depan." className="text-sm resize-none" />
+      </Field>
+    </div>
+  );
+
+  if (sys === "mto") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Sedang menerima pesanan Made-to-Order." closedLabel="Sementara tidak menerima pesanan baru." />
+      <Field label="Estimasi Waktu Proses" hint="Berapa hari pesanan selesai dibuat.">
+        <Input value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: 2 – 3 hari kerja" />
+      </Field>
+    </div>
+  );
+
+  if (sys === "open_order") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Open Order sedang aktif." closedLabel="Open Order sedang ditutup." />
+      <Field label="Periode Mulai" hint="Kapan pemesanan dibuka.">
+        <DatePicker date={settings.startDate} setDate={(d) => onChange({ startDate: d })} placeholder="Pilih tanggal mulai" />
+      </Field>
+      <Field label="Periode Tutup" hint="Kapan pemesanan ditutup atau kuota habis.">
+        <DatePicker date={settings.endDate} setDate={(d) => onChange({ endDate: d })} placeholder="Pilih tanggal tutup" />
+      </Field>
+      <Field label="Jadwal Pengiriman" hint="Kapan pesanan dikirim setelah periode tutup.">
+        <DatePicker date={settings.deliveryDate} setDate={(d) => onChange({ deliveryDate: d })} placeholder="Pilih tanggal pengiriman" />
+      </Field>
+      <Field label="Info Kuota" hint="Tampilkan info kuota atau slot yang tersedia.">
+        <Input value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: Kuota 50 pcs per periode" />
+      </Field>
+    </div>
+  );
+
+  if (sys === "booking") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Booking sedang dibuka." closedLabel="Booking sedang ditutup." />
+      <Field label="Deadline Booking" hint="Batas terakhir pelanggan bisa melakukan booking.">
+        <DatePicker date={settings.endDate} setDate={(d) => onChange({ endDate: d })} placeholder="Pilih deadline booking" />
+      </Field>
+      <Field label="Jadwal Pengambilan / Pengiriman" hint="Kapan produk bisa diambil atau dikirim.">
+        <DatePicker date={settings.deliveryDate} setDate={(d) => onChange({ deliveryDate: d })} placeholder="Pilih tanggal ambil/kirim" />
+      </Field>
+      <Field label="Info DP & Ketentuan" hint="Ditampilkan ke pelanggan di halaman jadwal.">
+        <Textarea rows={3} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: DP minimal 50% untuk konfirmasi slot." className="text-sm resize-none" />
+      </Field>
+    </div>
+  );
+
+  if (sys === "subscription") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Pendaftaran langganan dibuka." closedLabel="Pendaftaran langganan ditutup." />
+      <Field label="Frekuensi Pengiriman" hint="Seberapa sering produk dikirim ke pelanggan.">
+        <Input value={settings.startDate} onChange={(e) => onChange({ startDate: e.target.value })} placeholder="Contoh: Setiap minggu / Setiap bulan" />
+      </Field>
+      <Field label="Hari Pengiriman" hint="Hari apa produk dikirim setiap periode.">
+        <Input value={settings.endDate} onChange={(e) => onChange({ endDate: e.target.value })} placeholder="Contoh: Setiap Senin" />
+      </Field>
+      <Field label="Info Langganan" hint="Ketentuan dan cara daftar langganan.">
+        <Textarea rows={3} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: Langganan mingguan. Pembayaran di awal setiap bulan." className="text-sm resize-none" />
+      </Field>
+    </div>
+  );
+
+  if (sys === "grosir") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Menerima pesanan grosir." closedLabel="Pesanan grosir sementara ditutup." />
+      <Field label="Minimum Order" hint="Jumlah minimum pembelian untuk harga grosir.">
+        <Input value={settings.startDate} onChange={(e) => onChange({ startDate: e.target.value })} placeholder="Contoh: Minimal 10 pcs per item" />
+      </Field>
+      <Field label="Jam Layanan & Info Pemesanan" hint="Tampil di halaman jadwal website.">
+        <Textarea rows={4} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder={"Senin – Jumat: 09.00 – 17.00\nHub. WhatsApp untuk negosiasi harga."} className="text-sm resize-none" />
+      </Field>
+    </div>
+  );
+
+  if (sys === "custom") return (
+    <div className="space-y-5">
+      <StatusToggle openLabel="Menerima pesanan custom." closedLabel="Pesanan custom sementara ditutup." />
+      <Field label="Estimasi Waktu Pengerjaan" hint="Berapa hari pesanan custom selesai.">
+        <Input value={settings.startDate} onChange={(e) => onChange({ startDate: e.target.value })} placeholder="Contoh: 3 – 5 hari kerja" />
+      </Field>
+      <Field label="Opsi Kustomisasi & Ketentuan" hint="Ditampilkan ke pelanggan di halaman jadwal.">
+        <Textarea rows={4} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder={"Tersedia: tingkat pedas, ukuran porsi, varian bumbu.\nMinimal order 2 pcs untuk custom order."} className="text-sm resize-none" />
+      </Field>
+    </div>
+  );
+
+  return null;
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+const defaultSettings: Settings = {
+  sellingSystem: "po",
+  status: "open",
+  startDate: "",
+  endDate: "",
+  deliveryDate: "",
+  schedule: "",
+};
 
 export default function SistemPenjualanPage() {
-  const [currentSystem, setCurrentSystem] = useState<string>("po");
-  const [selectedSystem, setSelectedSystem] = useState<string>("po");
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [savedSystem, setSavedSystem] = useState<SystemId>("po");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [needsMigration, setNeedsMigration] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const fetchCurrent = async () => {
-      const { data, error } = await supabase
+    const fetch = async () => {
+      const { data } = await supabase
         .from("store_settings")
-        .select("selling_system")
+        .select("selling_system, po_status, po_start_date, po_end_date, po_delivery_date, operational_schedule")
         .eq("id", "default")
         .single();
 
-      // If error contains 'column' it means migration hasn't been run
-      if (error?.message?.toLowerCase().includes("column") || error?.code === "42703") {
-        setNeedsMigration(true);
-      } else if (data?.selling_system) {
-        setCurrentSystem(data.selling_system);
-        setSelectedSystem(data.selling_system);
+      if (data) {
+        const sys = (data.selling_system as SystemId) || "po";
+        setSavedSystem(sys);
+        setSettings({
+          sellingSystem: sys,
+          status: data.po_status || "open",
+          startDate: data.po_start_date || "",
+          endDate: data.po_end_date || "",
+          deliveryDate: data.po_delivery_date || "",
+          schedule: data.operational_schedule || "",
+        });
       }
       setLoading(false);
     };
-    fetchCurrent();
+    fetch();
   }, []);
+
+  const handleSystemSelect = (sys: SystemId) => {
+    setSettings(prev => ({ ...prev, sellingSystem: sys }));
+  };
+
+  const handleChange = (patch: Partial<Settings>) => {
+    setSettings(prev => ({ ...prev, ...patch }));
+  };
 
   const handleSave = async () => {
     setSaving(true);
     const { error } = await supabase
       .from("store_settings")
-      .update({ selling_system: selectedSystem, updated_at: new Date().toISOString() })
+      .update({
+        selling_system: settings.sellingSystem,
+        po_status: settings.status,
+        po_start_date: settings.startDate || null,
+        po_end_date: settings.endDate || null,
+        po_delivery_date: settings.deliveryDate || null,
+        operational_schedule: settings.schedule,
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", "default");
 
     if (error) {
-      // Check if it's a missing column error
-      if (error.message?.toLowerCase().includes("column") || error.code === "42703") {
-        setNeedsMigration(true);
-        toast.error("Kolom database belum ada. Lihat instruksi di bawah.");
-      } else {
-        toast.error("Gagal menyimpan: " + error.message);
-      }
+      toast.error("Gagal menyimpan: " + error.message);
     } else {
-      setCurrentSystem(selectedSystem);
-      setNeedsMigration(false);
-      toast.success("Sistem penjualan berhasil diperbarui!");
+      setSavedSystem(settings.sellingSystem);
+      toast.success("Pengaturan sistem penjualan disimpan!");
     }
     setSaving(false);
   };
 
-  const handleCopySQL = () => {
-    navigator.clipboard.writeText(SQL_MIGRATION);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    toast.success("SQL disalin ke clipboard!");
-  };
-
-  const hasChanged = selectedSystem !== currentSystem;
-  const selectedData = sellingSystems.find(s => s.id === selectedSystem);
+  const selectedDef = systems.find(s => s.id === settings.sellingSystem);
 
   if (loading) {
     return (
@@ -171,151 +318,103 @@ export default function SistemPenjualanPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-4xl">
+    <div className="space-y-8 max-w-6xl">
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-1">
-          <Link
-            href="/dashboard/edit-website"
-            className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
-          >
+          <Link href="/dashboard/edit-website" className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Sistem Penjualan</h2>
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 ml-8">
-          Pilih sistem penjualan yang sesuai dengan model bisnis toko Anda. Pilihan ini akan mengubah tampilan halaman Jadwal di website pelanggan.
+          Pilih model bisnis toko Anda. Tampilan halaman jadwal di website pelanggan akan menyesuaikan secara otomatis.
         </p>
       </div>
 
-      {/* Migration Alert */}
-      {needsMigration && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-4">
-          <div className="flex items-start gap-3">
-            <Terminal className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
-            <div>
-              <h3 className="font-semibold text-amber-600 dark:text-amber-400 mb-1">
-                Perlu Migrasi Database
-              </h3>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Kolom <code className="bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-xs font-mono">selling_system</code> belum ada di tabel Supabase Anda.
-                Jalankan SQL berikut di <strong>Supabase → SQL Editor</strong>, lalu reload halaman ini.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3">
-            <code className="flex-1 text-sm font-mono text-emerald-400">{SQL_MIGRATION}</code>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={handleCopySQL}
-              className="shrink-0 gap-1.5 border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500"
-            >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Tersalin!" : "Copy"}
-            </Button>
-          </div>
-          <p className="text-xs text-zinc-500">
-            Setelah SQL dijalankan, reload halaman ini dan fitur akan berjalan normal.
-          </p>
-        </div>
-      )}
+      {/* Split Layout */}
+      <div className="flex flex-col lg:flex-row gap-6">
 
-      {/* Current System Badge */}
-      {!needsMigration && (
-        <div className="flex items-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Sistem saat ini:{" "}
-            <strong className="text-zinc-900 dark:text-zinc-100">
-              {sellingSystems.find(s => s.id === currentSystem)?.name ?? currentSystem}
-            </strong>
-          </span>
-        </div>
-      )}
+        {/* LEFT — System List */}
+        <div className="lg:w-[340px] shrink-0">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden divide-y divide-zinc-100 dark:divide-zinc-800/80">
+            {systems.map((sys) => {
+              const Icon = sys.icon;
+              const isSelected = settings.sellingSystem === sys.id;
+              const isSaved = savedSystem === sys.id;
 
-      {/* System Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
-        {sellingSystems.map((system) => {
-          const Icon = system.icon;
-          const isSelected = selectedSystem === system.id;
-          const isCurrent = currentSystem === system.id && !needsMigration;
-
-          return (
-            <button
-              key={system.id}
-              onClick={() => setSelectedSystem(system.id)}
-              className={`text-left w-full rounded-xl border-2 p-4 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                isSelected
-                  ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
-                  : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className={`p-2.5 rounded-lg border shrink-0 mt-0.5 ${system.color}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={`font-semibold text-sm ${isSelected ? "text-primary" : "text-zinc-900 dark:text-zinc-100"}`}>
-                      {system.name}
-                    </h3>
-                    {isCurrent && (
-                      <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
-                        Aktif
-                      </span>
-                    )}
+              return (
+                <button
+                  key={sys.id}
+                  onClick={() => handleSystemSelect(sys.id)}
+                  className={`w-full text-left flex items-center gap-3 px-4 py-3.5 transition-colors ${
+                    isSelected
+                      ? "bg-primary/5 dark:bg-primary/10"
+                      : "bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg shrink-0 ${
+                    isSelected
+                      ? "bg-primary/10 text-primary"
+                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
+                  }`}>
+                    <Icon className="h-4 w-4" />
                   </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                    {system.description}
-                  </p>
-                </div>
-                <div className={`mt-1 h-4 w-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
-                  isSelected ? "border-primary bg-primary" : "border-zinc-300 dark:border-zinc-700"
-                }`}>
-                  {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-medium truncate ${isSelected ? "text-primary" : "text-zinc-800 dark:text-zinc-200"}`}>
+                        {sys.name}
+                      </span>
+                      {isSaved && (
+                        <span className="text-[10px] font-semibold bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
+                          Aktif
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{sys.description}</p>
+                  </div>
+                  <ChevronRight className={`h-4 w-4 shrink-0 transition-colors ${isSelected ? "text-primary" : "text-zinc-300 dark:text-zinc-600"}`} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* RIGHT — Settings Panel */}
+        <div className="flex-1">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 h-full">
+            {/* Panel Header */}
+            <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                {selectedDef && (
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                    <selectedDef.icon className="h-4 w-4" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    Pengaturan — {selectedDef?.name}
+                  </h3>
+                  <p className="text-xs text-zinc-500">{selectedDef?.description}</p>
                 </div>
               </div>
-            </button>
-          );
-        })}
-      </div>
+            </div>
 
-      {/* Schedule Preview Note */}
-      {selectedData && (
-        <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/50 rounded-xl">
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            <strong>💡 Tampilan Jadwal:</strong> {selectedData.scheduleNote}
-          </p>
-        </div>
-      )}
+            {/* Panel Body */}
+            <div className="p-6">
+              <SettingsPanel settings={settings} onChange={handleChange} />
+            </div>
 
-      {/* PO Settings Link */}
-      {selectedSystem === "po" && !needsMigration && (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Atur Jadwal Pre-Order</p>
-            <p className="text-xs text-zinc-500 mt-0.5">Atur tanggal buka, tutup, dan pengiriman PO.</p>
+            {/* Panel Footer */}
+            <div className="px-6 py-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
+              <Button onClick={handleSave} disabled={saving} className="gap-2 bg-primary hover:bg-primary/90 text-white">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {saving ? "Menyimpan..." : "Simpan Pengaturan"}
+              </Button>
+            </div>
           </div>
-          <Link href="/dashboard/jadwal">
-            <Button variant="outline" size="sm" className="gap-2">
-              <CalendarClock className="h-4 w-4" /> Atur Jadwal PO
-            </Button>
-          </Link>
         </div>
-      )}
 
-      {/* Save Button */}
-      <div className="flex justify-end pt-2">
-        <Button
-          onClick={handleSave}
-          disabled={(!hasChanged && !needsMigration) || saving}
-          className="gap-2 min-w-[160px] bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-          {saving ? "Menyimpan..." : "Simpan Perubahan"}
-        </Button>
       </div>
     </div>
   );
