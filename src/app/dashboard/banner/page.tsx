@@ -156,13 +156,14 @@ export default function BannerPage() {
               {banners.map((banner, index) => (
                 <div 
                   key={banner.id} 
-                  className={`flex flex-col sm:flex-row gap-4 p-4 border rounded-xl items-center transition-all ${
+                  className={`flex flex-col sm:flex-row gap-3 sm:gap-4 p-3 sm:p-4 border rounded-xl sm:items-center transition-all ${
                     banner.is_active 
                       ? 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950' 
                       : 'border-zinc-200/50 dark:border-zinc-800/50 bg-zinc-50 dark:bg-zinc-900/50 opacity-75'
                   }`}
                 >
-                  <div className="w-full sm:w-48 aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border border-zinc-100 dark:border-zinc-800 relative">
+                  <div className="flex flex-row items-center sm:items-start gap-3 sm:gap-4 w-full sm:w-auto flex-1 min-w-0">
+                    <div className="w-24 sm:w-48 aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border border-zinc-100 dark:border-zinc-800 relative">
                     <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover" />
                     {!banner.is_active && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -171,24 +172,25 @@ export default function BannerPage() {
                     )}
                   </div>
                   
-                  <div className="flex-1 min-w-0 w-full">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100 truncate">{banner.title}</h3>
-                      {banner.is_active && <Badge className="bg-emerald-500 hover:bg-emerald-600">Aktif</Badge>}
-                    </div>
-                    <p className="text-zinc-500 dark:text-zinc-400 text-sm truncate">{banner.subtitle}</p>
-                    <div className="mt-3 flex items-center gap-3 text-xs text-zinc-500">
-                      <span className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
-                        Tombol: <strong className="text-zinc-700 dark:text-zinc-300">{banner.link_text || '-'}</strong>
-                      </span>
-                      <span className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
-                        Link: <strong className="text-zinc-700 dark:text-zinc-300">{banner.link_url || '-'}</strong>
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="font-bold text-base sm:text-lg text-zinc-900 dark:text-zinc-100 truncate">{banner.title}</h3>
+                        {banner.is_active && <Badge className="bg-emerald-500 hover:bg-emerald-600 text-[10px] sm:text-xs">Aktif</Badge>}
+                      </div>
+                      <p className="text-zinc-500 dark:text-zinc-400 text-xs sm:text-sm truncate">{banner.subtitle}</p>
+                      <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2 sm:gap-3 text-[10px] sm:text-xs text-zinc-500">
+                        <span className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
+                          Tombol: <strong className="text-zinc-700 dark:text-zinc-300 truncate max-w-[80px] sm:max-w-none">{banner.link_text || '-'}</strong>
+                        </span>
+                        <span className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">
+                          Link: <strong className="text-zinc-700 dark:text-zinc-300 truncate max-w-[80px] sm:max-w-none">{banner.link_url || '-'}</strong>
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 border-t sm:border-t-0 pt-4 sm:pt-0 mt-2 sm:mt-0 justify-between sm:justify-end">
-                    <div className="flex flex-col gap-1 mr-4">
+                  <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 border-t sm:border-t-0 pt-3 sm:pt-0 mt-1 sm:mt-0 justify-between sm:justify-end">
+                    <div className="flex flex-col gap-1 sm:mr-4">
                       <Button 
                         variant="ghost" 
                         size="icon" 

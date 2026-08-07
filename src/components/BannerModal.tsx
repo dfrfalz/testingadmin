@@ -463,7 +463,7 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
               <div className="flex flex-col xl:flex-row gap-6 items-start">
                 
                 {/* Desktop Preview */}
-                <div className="relative flex-1 w-full aspect-[16/9] xl:aspect-[21/9] min-h-[500px] rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-[#0a0a0a] flex items-center p-8 lg:p-12 shadow-sm">
+                <div className="relative flex-1 w-full aspect-[16/9] xl:aspect-[21/9] min-h-[250px] sm:min-h-[400px] lg:min-h-[500px] rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-[#0a0a0a] flex items-center p-4 sm:p-8 lg:p-12 shadow-sm">
                   {/* Background Desktop */}
                   {formData.background_url && (
                     <div 
@@ -472,42 +472,42 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
                     />
                   )}
                   {/* Content Desktop */}
-                  <div className="relative z-10 w-full flex flex-col-reverse md:flex-row items-center justify-between gap-8 max-w-6xl mx-auto">
-                    <div className="flex-1 space-y-6 text-center md:text-left">
-                      <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm">
-                        <Crown className="h-4 w-4 text-[#06b6d4] fill-[#06b6d4]/30" />
-                        <span className="text-xs font-bold text-zinc-300">{formData.link_url || 'OLAHAN CUMI PREMIUM #1'}</span>
+                  <div className="relative z-10 w-full flex flex-row items-center justify-between gap-4 sm:gap-8 max-w-6xl mx-auto">
+                    <div className="flex-1 space-y-2 sm:space-y-6 text-left">
+                      <div className="inline-flex items-center gap-1.5 px-2 py-1 sm:px-4 sm:py-2 rounded-full bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm">
+                        <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-[#06b6d4] fill-[#06b6d4]/30" />
+                        <span className="text-[10px] sm:text-xs font-bold text-zinc-300">{formData.link_url || 'OLAHAN CUMI PREMIUM #1'}</span>
                       </div>
-                      <div className="space-y-1">
-                        <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-white tracking-tight">
+                      <div className="space-y-0.5 sm:space-y-1">
+                        <h1 className="text-xl sm:text-4xl lg:text-5xl xl:text-7xl font-bold text-white tracking-tight leading-tight">
                           {formData.title || 'Judul Utama'}
                         </h1>
-                        <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-[#06b6d4] tracking-tight">
+                        <h2 className="text-lg sm:text-3xl lg:text-4xl xl:text-6xl font-bold text-[#06b6d4] tracking-tight leading-tight">
                           {formData.subtitle || 'Subjudul'}
                         </h2>
                       </div>
-                      <p className="text-base lg:text-lg text-zinc-400 line-clamp-3 max-w-xl mx-auto md:mx-0">
+                      <p className="text-xs sm:text-sm lg:text-lg text-zinc-400 line-clamp-2 sm:line-clamp-3 max-w-xl">
                         {formData.description || 'Deskripsi banner akan muncul di sini...'}
                       </p>
-                      <div className="pt-4 flex items-center gap-4">
-                        <Button type="button" className="pointer-events-none h-12 text-base px-8 bg-[#06b6d4] hover:bg-[#0891b2] text-white font-semibold">
+                      <div className="pt-2 sm:pt-4 flex items-center gap-2 sm:gap-4">
+                        <Button type="button" className="pointer-events-none h-8 px-4 sm:h-12 text-xs sm:text-base sm:px-8 bg-[#06b6d4] hover:bg-[#0891b2] text-white font-semibold">
                           {formData.link_text || 'Pesan Sekarang'} &rarr;
                         </Button>
-                        <div className="flex items-center gap-2">
+                        <div className="hidden sm:flex items-center gap-2">
                            <div className="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center bg-zinc-900/50 text-zinc-400">&lt;</div>
                            <div className="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center bg-zinc-900/50 text-zinc-400">&gt;</div>
                         </div>
                       </div>
                     </div>
                     {/* Image Desktop */}
-                    <div className="w-[280px] lg:w-[400px] xl:w-[450px] shrink-0">
-                      <div className="aspect-square rounded-full p-5" style={{ background: "conic-gradient(from 0deg, rgba(220,38,38,0.3), rgba(255,100,0,0.15), transparent, rgba(220,38,38,0.3))" }}>
+                    <div className="w-[120px] sm:w-[200px] lg:w-[400px] xl:w-[450px] shrink-0">
+                      <div className="aspect-square rounded-full p-2 sm:p-5" style={{ background: "conic-gradient(from 0deg, rgba(220,38,38,0.3), rgba(255,100,0,0.15), transparent, rgba(220,38,38,0.3))" }}>
                         <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden shadow-2xl">
                           {formData.image_url ? (
                             <img src={formData.image_url} alt="Hero" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
-                              <ImagePlus className="h-12 w-12 text-zinc-500" />
+                              <ImagePlus className="h-6 w-6 sm:h-12 sm:w-12 text-zinc-500" />
                             </div>
                           )}
                         </div>
