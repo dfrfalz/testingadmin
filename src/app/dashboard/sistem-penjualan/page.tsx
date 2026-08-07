@@ -5,18 +5,21 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { 
-  CheckCircle2, 
-  Loader2, 
-  ShoppingBag, 
-  CalendarClock, 
-  Hammer, 
-  RefreshCw, 
-  BookMarked, 
-  Repeat2, 
-  Users, 
+import {
+  CheckCircle2,
+  Loader2,
+  ShoppingBag,
+  CalendarClock,
+  Hammer,
+  RefreshCw,
+  BookMarked,
+  Repeat2,
+  Users,
   Sliders,
-  ArrowLeft
+  ArrowLeft,
+  Terminal,
+  Copy,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -96,21 +99,28 @@ const sellingSystems: SellingSystem[] = [
   }
 ];
 
+const SQL_MIGRATION = `ALTER TABLE store_settings ADD COLUMN IF NOT EXISTS selling_system TEXT DEFAULT 'po';`;
+
 export default function SistemPenjualanPage() {
   const [currentSystem, setCurrentSystem] = useState<string>("po");
   const [selectedSystem, setSelectedSystem] = useState<string>("po");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [needsMigration, setNeedsMigration] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchCurrent = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("store_settings")
         .select("selling_system")
         .eq("id", "default")
         .single();
 
-      if (data?.selling_system) {
+      // If error contains 'column' it means migration hasn't been run
+      if (error?.message?.toLowerCase().includes("column") || error?.code === "42703") {
+        setNeedsMigration(true);
+      } else if (data?.selling_system) {
         setCurrentSystem(data.selling_system);
         setSelectedSystem(data.selling_system);
       }
@@ -127,12 +137,26 @@ export default function SistemPenjualanPage() {
       .eq("id", "default");
 
     if (error) {
-      toast.error("Gagal menyimpan sistem penjualan.");
+      // Check if it's a missing column error
+      if (error.message?.toLowerCase().includes("column") || error.code === "42703") {
+        setNeedsMigration(true);
+        toast.error("Kolom database belum ada. Lihat instruksi di bawah.");
+      } else {
+        toast.error("Gagal menyimpan: " + error.message);
+      }
     } else {
       setCurrentSystem(selectedSystem);
+      setNeedsMigration(false);
       toast.success("Sistem penjualan berhasil diperbarui!");
     }
     setSaving(false);
+  };
+
+  const handleCopySQL = () => {
+    navigator.clipboard.writeText(SQL_MIGRATION);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("SQL disalin ke clipboard!");
   };
 
   const hasChanged = selectedSystem !== currentSystem;
@@ -151,8 +175,8 @@ export default function SistemPenjualanPage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-1">
-          <Link 
-            href="/dashboard/edit-website" 
+          <Link
+            href="/dashboard/edit-website"
             className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -164,22 +188,59 @@ export default function SistemPenjualanPage() {
         </p>
       </div>
 
+      {/* Migration Alert */}
+      {needsMigration && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-5 space-y-4">
+          <div className="flex items-start gap-3">
+            <Terminal className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+            <div>
+              <h3 className="font-semibold text-amber-600 dark:text-amber-400 mb-1">
+                Perlu Migrasi Database
+              </h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Kolom <code className="bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-xs font-mono">selling_system</code> belum ada di tabel Supabase Anda.
+                Jalankan SQL berikut di <strong>Supabase → SQL Editor</strong>, lalu reload halaman ini.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-3">
+            <code className="flex-1 text-sm font-mono text-emerald-400">{SQL_MIGRATION}</code>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleCopySQL}
+              className="shrink-0 gap-1.5 border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? "Tersalin!" : "Copy"}
+            </Button>
+          </div>
+          <p className="text-xs text-zinc-500">
+            Setelah SQL dijalankan, reload halaman ini dan fitur akan berjalan normal.
+          </p>
+        </div>
+      )}
+
       {/* Current System Badge */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-          Sistem saat ini: <strong className="text-zinc-900 dark:text-zinc-100">
-            {sellingSystems.find(s => s.id === currentSystem)?.name ?? currentSystem}
-          </strong>
-        </span>
-      </div>
+      {!needsMigration && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Sistem saat ini:{" "}
+            <strong className="text-zinc-900 dark:text-zinc-100">
+              {sellingSystems.find(s => s.id === currentSystem)?.name ?? currentSystem}
+            </strong>
+          </span>
+        </div>
+      )}
 
       {/* System Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
         {sellingSystems.map((system) => {
           const Icon = system.icon;
           const isSelected = selectedSystem === system.id;
-          const isCurrent = currentSystem === system.id;
+          const isCurrent = currentSystem === system.id && !needsMigration;
 
           return (
             <button
@@ -231,7 +292,7 @@ export default function SistemPenjualanPage() {
       )}
 
       {/* PO Settings Link */}
-      {selectedSystem === "po" && (
+      {selectedSystem === "po" && !needsMigration && (
         <div className="p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Atur Jadwal Pre-Order</p>
@@ -249,7 +310,7 @@ export default function SistemPenjualanPage() {
       <div className="flex justify-end pt-2">
         <Button
           onClick={handleSave}
-          disabled={!hasChanged || saving}
+          disabled={(!hasChanged && !needsMigration) || saving}
           className="gap-2 min-w-[160px] bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
