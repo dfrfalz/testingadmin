@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -42,6 +42,15 @@ type SystemId =
   | "grosir"
   | "custom";
 
+type Settings = {
+  sellingSystem: SystemId;
+  status: string;
+  startDate: string;
+  endDate: string;
+  deliveryDate: string;
+  schedule: string;
+};
+
 type SystemDef = {
   id: SystemId;
   name: string;
@@ -49,29 +58,20 @@ type SystemDef = {
   icon: React.ElementType;
 };
 
-type Settings = {
-  sellingSystem: SystemId;
-  status: string; // "open" | "closed"
-  startDate: string;
-  endDate: string;
-  deliveryDate: string;
-  schedule: string; // repurposed per-system
-};
-
 // ─── System Definitions ───────────────────────────────────────────────────────
 
 const systems: SystemDef[] = [
-  { id: "ready_stock", name: "Ready Stock", description: "Produk selalu tersedia, langsung dikirim.", icon: ShoppingBag },
-  { id: "po", name: "Pre-Order (PO)", description: "Pesanan dikumpulkan, lalu diproses sesuai jadwal.", icon: CalendarClock },
-  { id: "mto", name: "Made to Order (MTO)", description: "Dibuat setelah ada pesanan, tanpa jadwal PO.", icon: Hammer },
-  { id: "open_order", name: "Open Order (OO)", description: "Dibuka dalam periode atau kuota tertentu.", icon: RefreshCw },
-  { id: "booking", name: "Booking / Reservasi", description: "Pelanggan amankan stok lebih dulu dengan DP.", icon: BookMarked },
-  { id: "subscription", name: "Subscription / Langganan", description: "Pengiriman berkala — mingguan atau bulanan.", icon: Repeat2 },
-  { id: "grosir", name: "Grosir / Reseller", description: "Harga khusus berdasarkan jumlah pembelian.", icon: Users },
-  { id: "custom", name: "Custom Order", description: "Pelanggan sesuaikan pesanan sendiri.", icon: Sliders },
+  { id: "ready_stock",  name: "Ready Stock",            description: "Produk selalu tersedia, langsung dikirim.",           icon: ShoppingBag  },
+  { id: "po",           name: "Pre-Order (PO)",          description: "Pesanan dikumpulkan, lalu diproses sesuai jadwal.",   icon: CalendarClock },
+  { id: "mto",          name: "Made to Order (MTO)",     description: "Dibuat setelah ada pesanan, tanpa jadwal PO.",        icon: Hammer        },
+  { id: "open_order",   name: "Open Order (OO)",         description: "Dibuka dalam periode atau kuota tertentu.",           icon: RefreshCw     },
+  { id: "booking",      name: "Booking / Reservasi",     description: "Pelanggan amankan stok lebih dulu dengan DP.",        icon: BookMarked    },
+  { id: "subscription", name: "Subscription / Langganan",description: "Pengiriman berkala — mingguan atau bulanan.",         icon: Repeat2       },
+  { id: "grosir",       name: "Grosir / Reseller",       description: "Harga khusus berdasarkan jumlah pembelian.",          icon: Users         },
+  { id: "custom",       name: "Custom Order",            description: "Pelanggan sesuaikan pesanan sendiri.",                icon: Sliders       },
 ];
 
-// ─── DatePicker ───────────────────────────────────────────────────────────────
+// ─── Primitives (defined at module level — NEVER inside another component) ───
 
 function DatePicker({ date, setDate, placeholder }: { date: string; setDate: (d: string) => void; placeholder: string }) {
   const [open, setOpen] = useState(false);
@@ -82,24 +82,39 @@ function DatePicker({ date, setDate, placeholder }: { date: string; setDate: (d:
   }
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className={cn(buttonVariants({ variant: "outline" }), "w-full justify-start text-left font-normal", !date && "text-zinc-500")}>
+      <PopoverTrigger
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-full justify-start text-left font-normal",
+          !date && "text-zinc-500"
+        )}
+      >
         <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
         {parsedDate ? format(parsedDate, "PPP", { locale: id }) : <span>{placeholder}</span>}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <Calendar mode="single" selected={parsedDate} onSelect={(d) => { setDate(d ? d.toISOString() : ""); setOpen(false); }} />
+        <Calendar
+          mode="single"
+          selected={parsedDate}
+          onSelect={(d) => { setDate(d ? d.toISOString() : ""); setOpen(false); }}
+        />
       </PopoverContent>
     </Popover>
   );
 }
 
-// ─── Settings Panel per System ────────────────────────────────────────────────
-
-function SettingsPanel({ settings, onChange }: { settings: Settings; onChange: (patch: Partial<Settings>) => void }) {
-  const sys = settings.sellingSystem;
-  const isOpen = settings.status === "open";
-
-  const StatusToggle = ({ openLabel, closedLabel }: { openLabel: string; closedLabel: string }) => (
+function StatusToggle({
+  isOpen,
+  openLabel,
+  closedLabel,
+  onToggle,
+}: {
+  isOpen: boolean;
+  openLabel: string;
+  closedLabel: string;
+  onToggle: (v: boolean) => void;
+}) {
+  return (
     <div className="flex items-center justify-between p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
       <div>
         <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Status</p>
@@ -109,131 +124,158 @@ function SettingsPanel({ settings, onChange }: { settings: Settings; onChange: (
         <span className={`text-xs font-semibold ${isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-500"}`}>
           {isOpen ? "Buka" : "Tutup"}
         </span>
-        <Switch checked={isOpen} onCheckedChange={(v) => onChange({ status: v ? "open" : "closed" })} className="data-[state=checked]:bg-primary" />
+        <Switch
+          checked={isOpen}
+          onCheckedChange={onToggle}
+          className="data-[state=checked]:bg-primary"
+        />
       </div>
     </div>
   );
+}
 
-  const Field = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
+function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
     <div className="space-y-1.5">
       <Label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</Label>
       {children}
       {hint && <p className="text-xs text-zinc-500">{hint}</p>}
     </div>
   );
+}
+
+// ─── Settings Panel (defined at module level, NOT inside page component) ──────
+
+function SettingsPanel({
+  settings,
+  onStatusToggle,
+  onStartDateChange,
+  onEndDateChange,
+  onDeliveryDateChange,
+  onScheduleChange,
+}: {
+  settings: Settings;
+  onStatusToggle: (v: boolean) => void;
+  onStartDateChange: (v: string) => void;
+  onEndDateChange: (v: string) => void;
+  onDeliveryDateChange: (v: string) => void;
+  onScheduleChange: (v: string) => void;
+}) {
+  const { sellingSystem: sys, status, startDate, endDate, deliveryDate, schedule } = settings;
+  const isOpen = status === "open";
 
   if (sys === "ready_stock") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Toko sedang buka — pesanan langsung diproses." closedLabel="Toko sedang tutup sementara." />
-      <Field label="Jam Operasional" hint="Tampil di footer website.">
-        <Textarea rows={4} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder={"Senin – Jumat: 09.00 – 17.00\nSabtu: 09.00 – 14.00\nMinggu: Tutup"} className="font-mono text-sm resize-none" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Toko sedang buka — pesanan langsung diproses." closedLabel="Toko sedang tutup sementara." />
+      <FieldRow label="Jam Operasional" hint="Tampil di footer website.">
+        <Textarea rows={4} value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder={"Senin – Jumat: 09.00 – 17.00\nSabtu: 09.00 – 14.00\nMinggu: Tutup"} className="font-mono text-sm resize-none" />
+      </FieldRow>
     </div>
   );
 
   if (sys === "po") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Pre-Order sedang dibuka untuk pelanggan." closedLabel="Pre-Order sedang ditutup." />
-      <Field label="Tanggal Mulai PO" hint="Kapan periode PO ini mulai dibuka.">
-        <DatePicker date={settings.startDate} setDate={(d) => onChange({ startDate: d })} placeholder="Pilih tanggal mulai" />
-      </Field>
-      <Field label="Batas Pemesanan" hint="Tenggat terakhir pelanggan dapat memesan.">
-        <DatePicker date={settings.endDate} setDate={(d) => onChange({ endDate: d })} placeholder="Pilih tanggal tutup" />
-      </Field>
-      <Field label="Jadwal Pengiriman" hint="Kapan pesanan mulai didistribusikan.">
-        <DatePicker date={settings.deliveryDate} setDate={(d) => onChange({ deliveryDate: d })} placeholder="Pilih tanggal pengiriman" />
-      </Field>
-      <Field label="Catatan PO" hint="Informasi tambahan yang ditampilkan ke pelanggan.">
-        <Textarea rows={3} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: Minimal order 2 pcs. Pembayaran full di depan." className="text-sm resize-none" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Pre-Order sedang dibuka untuk pelanggan." closedLabel="Pre-Order sedang ditutup." />
+      <FieldRow label="Tanggal Mulai PO" hint="Kapan periode PO ini mulai dibuka.">
+        <DatePicker date={startDate} setDate={onStartDateChange} placeholder="Pilih tanggal mulai" />
+      </FieldRow>
+      <FieldRow label="Batas Pemesanan" hint="Tenggat terakhir pelanggan dapat memesan.">
+        <DatePicker date={endDate} setDate={onEndDateChange} placeholder="Pilih tanggal tutup" />
+      </FieldRow>
+      <FieldRow label="Jadwal Pengiriman" hint="Kapan pesanan mulai didistribusikan.">
+        <DatePicker date={deliveryDate} setDate={onDeliveryDateChange} placeholder="Pilih tanggal pengiriman" />
+      </FieldRow>
+      <FieldRow label="Catatan PO" hint="Informasi tambahan yang ditampilkan ke pelanggan.">
+        <Textarea rows={3} value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder="Contoh: Minimal order 2 pcs. Pembayaran full di depan." className="text-sm resize-none" />
+      </FieldRow>
     </div>
   );
 
   if (sys === "mto") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Sedang menerima pesanan Made-to-Order." closedLabel="Sementara tidak menerima pesanan baru." />
-      <Field label="Estimasi Waktu Proses" hint="Berapa hari pesanan selesai dibuat.">
-        <Input value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: 2 – 3 hari kerja" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Sedang menerima pesanan Made-to-Order." closedLabel="Sementara tidak menerima pesanan baru." />
+      <FieldRow label="Estimasi Waktu Proses" hint="Berapa hari pesanan selesai dibuat.">
+        <Input value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder="Contoh: 2 – 3 hari kerja" />
+      </FieldRow>
     </div>
   );
 
   if (sys === "open_order") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Open Order sedang aktif." closedLabel="Open Order sedang ditutup." />
-      <Field label="Periode Mulai" hint="Kapan pemesanan dibuka.">
-        <DatePicker date={settings.startDate} setDate={(d) => onChange({ startDate: d })} placeholder="Pilih tanggal mulai" />
-      </Field>
-      <Field label="Periode Tutup" hint="Kapan pemesanan ditutup atau kuota habis.">
-        <DatePicker date={settings.endDate} setDate={(d) => onChange({ endDate: d })} placeholder="Pilih tanggal tutup" />
-      </Field>
-      <Field label="Jadwal Pengiriman" hint="Kapan pesanan dikirim setelah periode tutup.">
-        <DatePicker date={settings.deliveryDate} setDate={(d) => onChange({ deliveryDate: d })} placeholder="Pilih tanggal pengiriman" />
-      </Field>
-      <Field label="Info Kuota" hint="Tampilkan info kuota atau slot yang tersedia.">
-        <Input value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: Kuota 50 pcs per periode" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Open Order sedang aktif." closedLabel="Open Order sedang ditutup." />
+      <FieldRow label="Periode Mulai" hint="Kapan pemesanan dibuka.">
+        <DatePicker date={startDate} setDate={onStartDateChange} placeholder="Pilih tanggal mulai" />
+      </FieldRow>
+      <FieldRow label="Periode Tutup" hint="Kapan pemesanan ditutup atau kuota habis.">
+        <DatePicker date={endDate} setDate={onEndDateChange} placeholder="Pilih tanggal tutup" />
+      </FieldRow>
+      <FieldRow label="Jadwal Pengiriman" hint="Kapan pesanan dikirim setelah periode tutup.">
+        <DatePicker date={deliveryDate} setDate={onDeliveryDateChange} placeholder="Pilih tanggal pengiriman" />
+      </FieldRow>
+      <FieldRow label="Info Kuota" hint="Tampilkan info kuota atau slot yang tersedia.">
+        <Input value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder="Contoh: Kuota 50 pcs per periode" />
+      </FieldRow>
     </div>
   );
 
   if (sys === "booking") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Booking sedang dibuka." closedLabel="Booking sedang ditutup." />
-      <Field label="Deadline Booking" hint="Batas terakhir pelanggan bisa melakukan booking.">
-        <DatePicker date={settings.endDate} setDate={(d) => onChange({ endDate: d })} placeholder="Pilih deadline booking" />
-      </Field>
-      <Field label="Jadwal Pengambilan / Pengiriman" hint="Kapan produk bisa diambil atau dikirim.">
-        <DatePicker date={settings.deliveryDate} setDate={(d) => onChange({ deliveryDate: d })} placeholder="Pilih tanggal ambil/kirim" />
-      </Field>
-      <Field label="Info DP & Ketentuan" hint="Ditampilkan ke pelanggan di halaman jadwal.">
-        <Textarea rows={3} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: DP minimal 50% untuk konfirmasi slot." className="text-sm resize-none" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Booking sedang dibuka." closedLabel="Booking sedang ditutup." />
+      <FieldRow label="Deadline Booking" hint="Batas terakhir pelanggan bisa melakukan booking.">
+        <DatePicker date={endDate} setDate={onEndDateChange} placeholder="Pilih deadline booking" />
+      </FieldRow>
+      <FieldRow label="Jadwal Pengambilan / Pengiriman" hint="Kapan produk bisa diambil atau dikirim.">
+        <DatePicker date={deliveryDate} setDate={onDeliveryDateChange} placeholder="Pilih tanggal ambil/kirim" />
+      </FieldRow>
+      <FieldRow label="Info DP & Ketentuan" hint="Ditampilkan ke pelanggan di halaman jadwal.">
+        <Textarea rows={3} value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder="Contoh: DP minimal 50% untuk konfirmasi slot." className="text-sm resize-none" />
+      </FieldRow>
     </div>
   );
 
   if (sys === "subscription") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Pendaftaran langganan dibuka." closedLabel="Pendaftaran langganan ditutup." />
-      <Field label="Frekuensi Pengiriman" hint="Seberapa sering produk dikirim ke pelanggan.">
-        <Input value={settings.startDate} onChange={(e) => onChange({ startDate: e.target.value })} placeholder="Contoh: Setiap minggu / Setiap bulan" />
-      </Field>
-      <Field label="Hari Pengiriman" hint="Hari apa produk dikirim setiap periode.">
-        <Input value={settings.endDate} onChange={(e) => onChange({ endDate: e.target.value })} placeholder="Contoh: Setiap Senin" />
-      </Field>
-      <Field label="Info Langganan" hint="Ketentuan dan cara daftar langganan.">
-        <Textarea rows={3} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder="Contoh: Langganan mingguan. Pembayaran di awal setiap bulan." className="text-sm resize-none" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Pendaftaran langganan dibuka." closedLabel="Pendaftaran langganan ditutup." />
+      <FieldRow label="Frekuensi Pengiriman" hint="Seberapa sering produk dikirim ke pelanggan.">
+        <Input value={startDate} onChange={(e) => onStartDateChange(e.target.value)} placeholder="Contoh: Setiap minggu / Setiap bulan" />
+      </FieldRow>
+      <FieldRow label="Hari Pengiriman" hint="Hari apa produk dikirim setiap periode.">
+        <Input value={endDate} onChange={(e) => onEndDateChange(e.target.value)} placeholder="Contoh: Setiap Senin" />
+      </FieldRow>
+      <FieldRow label="Info Langganan" hint="Ketentuan dan cara daftar langganan.">
+        <Textarea rows={3} value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder="Contoh: Langganan mingguan. Pembayaran di awal setiap bulan." className="text-sm resize-none" />
+      </FieldRow>
     </div>
   );
 
   if (sys === "grosir") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Menerima pesanan grosir." closedLabel="Pesanan grosir sementara ditutup." />
-      <Field label="Minimum Order" hint="Jumlah minimum pembelian untuk harga grosir.">
-        <Input value={settings.startDate} onChange={(e) => onChange({ startDate: e.target.value })} placeholder="Contoh: Minimal 10 pcs per item" />
-      </Field>
-      <Field label="Jam Layanan & Info Pemesanan" hint="Tampil di halaman jadwal website.">
-        <Textarea rows={4} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder={"Senin – Jumat: 09.00 – 17.00\nHub. WhatsApp untuk negosiasi harga."} className="text-sm resize-none" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Menerima pesanan grosir." closedLabel="Pesanan grosir sementara ditutup." />
+      <FieldRow label="Minimum Order" hint="Jumlah minimum pembelian untuk harga grosir.">
+        <Input value={startDate} onChange={(e) => onStartDateChange(e.target.value)} placeholder="Contoh: Minimal 10 pcs per item" />
+      </FieldRow>
+      <FieldRow label="Jam Layanan & Info Pemesanan" hint="Tampil di halaman jadwal website.">
+        <Textarea rows={4} value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder={"Senin – Jumat: 09.00 – 17.00\nHub. WhatsApp untuk negosiasi harga."} className="text-sm resize-none" />
+      </FieldRow>
     </div>
   );
 
   if (sys === "custom") return (
     <div className="space-y-5">
-      <StatusToggle openLabel="Menerima pesanan custom." closedLabel="Pesanan custom sementara ditutup." />
-      <Field label="Estimasi Waktu Pengerjaan" hint="Berapa hari pesanan custom selesai.">
-        <Input value={settings.startDate} onChange={(e) => onChange({ startDate: e.target.value })} placeholder="Contoh: 3 – 5 hari kerja" />
-      </Field>
-      <Field label="Opsi Kustomisasi & Ketentuan" hint="Ditampilkan ke pelanggan di halaman jadwal.">
-        <Textarea rows={4} value={settings.schedule} onChange={(e) => onChange({ schedule: e.target.value })} placeholder={"Tersedia: tingkat pedas, ukuran porsi, varian bumbu.\nMinimal order 2 pcs untuk custom order."} className="text-sm resize-none" />
-      </Field>
+      <StatusToggle isOpen={isOpen} onToggle={onStatusToggle} openLabel="Menerima pesanan custom." closedLabel="Pesanan custom sementara ditutup." />
+      <FieldRow label="Estimasi Waktu Pengerjaan" hint="Berapa hari pesanan custom selesai.">
+        <Input value={startDate} onChange={(e) => onStartDateChange(e.target.value)} placeholder="Contoh: 3 – 5 hari kerja" />
+      </FieldRow>
+      <FieldRow label="Opsi Kustomisasi & Ketentuan" hint="Ditampilkan ke pelanggan di halaman jadwal.">
+        <Textarea rows={4} value={schedule} onChange={(e) => onScheduleChange(e.target.value)} placeholder={"Tersedia: tingkat pedas, ukuran porsi, varian bumbu.\nMinimal order 2 pcs untuk custom order."} className="text-sm resize-none" />
+      </FieldRow>
     </div>
   );
 
   return null;
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 const defaultSettings: Settings = {
   sellingSystem: "po",
@@ -251,7 +293,7 @@ export default function SistemPenjualanPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       const { data } = await supabase
         .from("store_settings")
         .select("selling_system, po_status, po_start_date, po_end_date, po_delivery_date, operational_schedule")
@@ -272,15 +314,18 @@ export default function SistemPenjualanPage() {
       }
       setLoading(false);
     };
-    fetch();
+    fetchData();
   }, []);
+
+  // Stable callbacks — one per field to avoid re-creating on every render
+  const handleStatusToggle = useCallback((v: boolean) => setSettings(p => ({ ...p, status: v ? "open" : "closed" })), []);
+  const handleStartDateChange = useCallback((v: string) => setSettings(p => ({ ...p, startDate: v })), []);
+  const handleEndDateChange = useCallback((v: string) => setSettings(p => ({ ...p, endDate: v })), []);
+  const handleDeliveryDateChange = useCallback((v: string) => setSettings(p => ({ ...p, deliveryDate: v })), []);
+  const handleScheduleChange = useCallback((v: string) => setSettings(p => ({ ...p, schedule: v })), []);
 
   const handleSystemSelect = (sys: SystemId) => {
     setSettings(prev => ({ ...prev, sellingSystem: sys }));
-  };
-
-  const handleChange = (patch: Partial<Settings>) => {
-    setSettings(prev => ({ ...prev, ...patch }));
   };
 
   const handleSave = async () => {
@@ -333,10 +378,10 @@ export default function SistemPenjualanPage() {
       </div>
 
       {/* Split Layout */}
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
 
         {/* LEFT — System List */}
-        <div className="lg:w-[340px] shrink-0">
+        <div className="lg:w-[320px] shrink-0 w-full">
           <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden divide-y divide-zinc-100 dark:divide-zinc-800/80">
             {systems.map((sys) => {
               const Icon = sys.icon;
@@ -353,7 +398,7 @@ export default function SistemPenjualanPage() {
                       : "bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/60"
                   }`}
                 >
-                  <div className={`p-2 rounded-lg shrink-0 ${
+                  <div className={`p-2 rounded-lg shrink-0 transition-colors ${
                     isSelected
                       ? "bg-primary/10 text-primary"
                       : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
@@ -371,7 +416,7 @@ export default function SistemPenjualanPage() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{sys.description}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate mt-0.5">{sys.description}</p>
                   </div>
                   <ChevronRight className={`h-4 w-4 shrink-0 transition-colors ${isSelected ? "text-primary" : "text-zinc-300 dark:text-zinc-600"}`} />
                 </button>
@@ -381,28 +426,35 @@ export default function SistemPenjualanPage() {
         </div>
 
         {/* RIGHT — Settings Panel */}
-        <div className="flex-1">
-          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 h-full">
+        <div className="flex-1 w-full">
+          <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
             {/* Panel Header */}
             <div className="px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
               <div className="flex items-center gap-3">
                 {selectedDef && (
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
                     <selectedDef.icon className="h-4 w-4" />
                   </div>
                 )}
                 <div>
                   <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                    Pengaturan — {selectedDef?.name}
+                    {selectedDef?.name}
                   </h3>
-                  <p className="text-xs text-zinc-500">{selectedDef?.description}</p>
+                  <p className="text-xs text-zinc-500 mt-0.5">{selectedDef?.description}</p>
                 </div>
               </div>
             </div>
 
             {/* Panel Body */}
             <div className="p-6">
-              <SettingsPanel settings={settings} onChange={handleChange} />
+              <SettingsPanel
+                settings={settings}
+                onStatusToggle={handleStatusToggle}
+                onStartDateChange={handleStartDateChange}
+                onEndDateChange={handleEndDateChange}
+                onDeliveryDateChange={handleDeliveryDateChange}
+                onScheduleChange={handleScheduleChange}
+              />
             </div>
 
             {/* Panel Footer */}
