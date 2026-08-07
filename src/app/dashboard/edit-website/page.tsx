@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Medal, ListOrdered, MessageSquareQuote } from "lucide-react";
+import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Medal, ListOrdered, MessageSquareQuote, ShoppingBag } from "lucide-react";
 
 const editOptions = [
   {
@@ -88,6 +88,13 @@ const editOptions = [
     icon: MessageSquareQuote,
     href: "/dashboard/testimoni",
     color: "bg-sky-500/10 text-sky-500 border border-sky-500/20"
+  },
+  {
+    title: "Sistem Penjualan",
+    description: "Pilih model bisnis toko Anda: Ready Stock, Pre-Order, MTO, Open Order, dan lainnya.",
+    icon: ShoppingBag,
+    href: "/dashboard/sistem-penjualan",
+    color: "bg-violet-500/10 text-violet-500 border border-violet-500/20"
   }
 ];
 
