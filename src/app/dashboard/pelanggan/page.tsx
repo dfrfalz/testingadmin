@@ -44,6 +44,7 @@ export default function PelangganPage() {
         .from('orders')
         .select('id, customer_whatsapp, customer_name, customer_email, total, created_at')
         .neq('status', 'CS_CHAT')
+        .neq('customer_whatsapp', '-')
         .order('created_at', { ascending: true });
 
       if (!error && data) {
