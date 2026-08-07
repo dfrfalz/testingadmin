@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -285,17 +285,15 @@ export default function PromoPage() {
                   <div className="space-y-2">
                     <Label>Tanggal Mulai</Label>
                     <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !startDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {startDate ? format(startDate, "PPP", { locale: idLocale }) : <span>Pilih tanggal mulai</span>}
-                        </Button>
+                      <PopoverTrigger
+                        className={cn(
+                          buttonVariants({ variant: "outline" }),
+                          "w-full justify-start text-left font-normal",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate ? format(startDate, "PPP", { locale: idLocale }) : <span>Pilih tanggal mulai</span>}
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
                         <Calendar
@@ -310,17 +308,15 @@ export default function PromoPage() {
                   <div className="space-y-2">
                     <Label>Tanggal Berakhir</Label>
                     <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !endDate && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {endDate ? format(endDate, "PPP", { locale: idLocale }) : <span>Pilih tanggal berakhir</span>}
-                        </Button>
+                      <PopoverTrigger
+                        className={cn(
+                          buttonVariants({ variant: "outline" }),
+                          "w-full justify-start text-left font-normal",
+                          !endDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {endDate ? format(endDate, "PPP", { locale: idLocale }) : <span>Pilih tanggal berakhir (opsional)</span>}
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0">
                         <Calendar
