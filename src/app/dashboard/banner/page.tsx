@@ -102,6 +102,19 @@ export default function BannerPage() {
     }
   };
 
+  if (isModalOpen) {
+    return (
+      <div className="pb-24">
+        <BannerModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={fetchBanners}
+          initialData={selectedBanner}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="mb-4">
@@ -218,13 +231,6 @@ export default function BannerPage() {
           )}
         </CardContent>
       </Card>
-
-      <BannerModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={fetchBanners}
-        initialData={selectedBanner}
-      />
     </div>
   );
 }

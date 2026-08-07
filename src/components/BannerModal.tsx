@@ -6,13 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
-import { ImagePlus, X, Loader2 } from "lucide-react";
+import { ImagePlus, X, Loader2, Crown } from "lucide-react";
 import { toast } from "sonner";
 
 export type BannerData = {
   id?: string;
   image_url: string;
   background_url: string;
+  background_mobile_url?: string;
   title: string;
   subtitle: string;
   description: string;
@@ -33,6 +34,7 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
   const [formData, setFormData] = useState<BannerData>({
     image_url: "",
     background_url: "",
+    background_mobile_url: "",
     title: "",
     subtitle: "",
     description: "Nikmati sensasi pedas premium dari CUMITA. Olahan cumi segar berpadu dengan sambal khas rumahan yang menggugah selera. Tersedia melalui sistem Pre-Order.",
@@ -45,8 +47,10 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
+  const [uploadingBgMobile, setUploadingBgMobile] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
+  const bgMobileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -55,6 +59,7 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
       setFormData({
         image_url: "",
         background_url: "",
+        background_mobile_url: "",
         title: "",
         subtitle: "",
         description: "Nikmati sensasi pedas premium dari CUMITA. Olahan cumi segar berpadu dengan sambal khas rumahan yang menggugah selera. Tersedia melalui sistem Pre-Order.",
@@ -155,12 +160,58 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
     }
   };
 
+  const handleBgMobileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran gambar maksimal 5MB');
+      return;
+    }
+
+    try {
+      setUploadingBgMobile(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `bg-mobile-${Date.now()}.${fileExt}`;
+      const filePath = `banners/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('menus')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('menus')
+        .getPublicUrl(filePath);
+
+      setFormData(prev => ({ ...prev, background_mobile_url: publicUrlData.publicUrl }));
+      toast.success('Gambar latar belakang mobile berhasil diunggah');
+    } catch (error: any) {
+      toast.error('Gagal mengunggah gambar latar belakang mobile: ' + error.message);
+    } finally {
+      setUploadingBgMobile(false);
+      if (bgMobileInputRef.current) {
+        bgMobileInputRef.current.value = '';
+      }
+    }
+  };
+
   const removeImage = () => {
     setFormData(prev => ({ ...prev, image_url: "" }));
   };
 
   const removeBg = () => {
     setFormData(prev => ({ ...prev, background_url: "" }));
+  };
+
+  const removeBgMobile = () => {
+    setFormData(prev => ({ ...prev, background_mobile_url: "" }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,27 +252,34 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{initialData ? "Edit Banner" : "Tambah Banner Baru"}</DialogTitle>
-        </DialogHeader>
+  if (!isOpen) return null;
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-2">
-          <div className="space-y-5">
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">{initialData ? "Edit Banner" : "Tambah Banner Baru"}</h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Atur detail banner yang akan ditampilkan di halaman depan.</p>
+        </div>
+        <Button type="button" variant="outline" onClick={onClose}>
+          Kembali ke Daftar Banner
+        </Button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-8">
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Gambar Banner</Label>
                 {formData.image_url ? (
-                  <div className="relative rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group shadow-sm">
-                    <div className="aspect-video w-full bg-zinc-100 dark:bg-zinc-900">
+                  <div className="relative rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 group shadow-sm aspect-square w-[140px]">
+                    <div className="w-full h-full bg-zinc-100 dark:bg-zinc-900">
                       <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
                     </div>
                     <button
                       type="button"
                       onClick={removeImage}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                      className="absolute top-4 right-4 p-1.5 bg-red-500/90 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -229,7 +287,7 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
                 ) : (
                   <div 
                     onClick={() => fileInputRef.current?.click()}
-                    className="aspect-video w-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-zinc-50/50 dark:bg-zinc-900/20"
+                    className="aspect-square w-[140px] border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-full flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-zinc-50/50 dark:bg-zinc-900/20 overflow-hidden"
                   >
                     {uploading ? (
                       <Loader2 className="h-6 w-6 text-primary animate-spin" />
@@ -240,7 +298,7 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
                         </div>
                         <div className="text-center">
                           <div className="text-sm text-zinc-700 dark:text-zinc-300 font-medium">Unggah Gambar Banner</div>
-                          <div className="text-[11px] text-zinc-500 mt-0.5">Rekomendasi rasio 1:1 atau 16:9</div>
+                          <div className="text-[11px] text-zinc-500 mt-0.5 px-4">Rekomendasi rasio 1:1 (Lingkaran)</div>
                         </div>
                       </>
                     )}
@@ -256,47 +314,98 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
               </div>
 
               <div className="space-y-2">
-                <Label>Gambar Latar Belakang</Label>
-                {formData.background_url ? (
-                  <div className="relative rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group shadow-sm">
-                    <div className="aspect-video w-full bg-zinc-100 dark:bg-zinc-900">
-                      <img src={formData.background_url} alt="Preview Background" className="w-full h-full object-cover" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={removeBg}
-                      className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div 
-                    onClick={() => bgInputRef.current?.click()}
-                    className="aspect-video w-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-zinc-50/50 dark:bg-zinc-900/20"
-                  >
-                    {uploadingBg ? (
-                      <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                <Label>Gambar Latar Belakang (Desktop & Mobile)</Label>
+                <div className="flex gap-3 h-[200px]">
+                  
+                  {/* Desktop Background */}
+                  <div className="flex-1 relative">
+                    {formData.background_url ? (
+                      <div className="relative h-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group shadow-sm">
+                        <div className="w-full h-full bg-zinc-100 dark:bg-zinc-900">
+                          <img src={formData.background_url} alt="Preview Background" className="w-full h-full object-cover" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeBg}
+                          className="absolute top-2 right-2 p-1.5 bg-red-500/90 hover:bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
                     ) : (
-                      <>
-                        <div className="p-3 bg-white dark:bg-zinc-800 rounded-full shadow-sm border border-zinc-100 dark:border-zinc-700">
-                          <ImagePlus className="h-6 w-6 text-zinc-500 dark:text-zinc-400" />
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm text-zinc-700 dark:text-zinc-300 font-medium">Unggah Latar Belakang</div>
-                          <div className="text-[11px] text-zinc-500 mt-0.5">Gambar akan diredupkan (15%)</div>
-                        </div>
-                      </>
+                      <div 
+                        onClick={() => bgInputRef.current?.click()}
+                        className="h-full w-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-zinc-50/50 dark:bg-zinc-900/20 px-2 text-center"
+                      >
+                        {uploadingBg ? (
+                          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                        ) : (
+                          <>
+                            <div className="p-2 bg-white dark:bg-zinc-800 rounded-full shadow-sm border border-zinc-100 dark:border-zinc-700">
+                              <ImagePlus className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
+                            </div>
+                            <div>
+                              <div className="text-[13px] text-zinc-700 dark:text-zinc-300 font-medium leading-tight">Latar Landscape</div>
+                              <div className="text-[10px] text-zinc-500 mt-0.5">Untuk Web/PC</div>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     )}
+                    <input
+                      type="file"
+                      ref={bgInputRef}
+                      className="hidden"
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={handleBgUpload}
+                    />
                   </div>
-                )}
-                <input
-                  type="file"
-                  ref={bgInputRef}
-                  className="hidden"
-                  accept="image/png, image/jpeg, image/webp"
-                  onChange={handleBgUpload}
-                />
+
+                  {/* Mobile Background */}
+                  <div className="w-[112px] flex-shrink-0 relative">
+                    {formData.background_mobile_url ? (
+                      <div className="relative h-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 group shadow-sm">
+                        <div className="w-full h-full bg-zinc-100 dark:bg-zinc-900">
+                          <img src={formData.background_mobile_url} alt="Preview Mobile Background" className="w-full h-full object-cover" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeBgMobile}
+                          className="absolute top-2 right-2 p-1 bg-red-500/90 hover:bg-red-600 text-white rounded-md opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div 
+                        onClick={() => bgMobileInputRef.current?.click()}
+                        className="h-full w-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-zinc-50/50 dark:bg-zinc-900/20 px-2 text-center"
+                      >
+                        {uploadingBgMobile ? (
+                          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                        ) : (
+                          <>
+                            <div className="p-2 bg-white dark:bg-zinc-800 rounded-full shadow-sm border border-zinc-100 dark:border-zinc-700">
+                              <ImagePlus className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
+                            </div>
+                            <div>
+                              <div className="text-[13px] text-zinc-700 dark:text-zinc-300 font-medium leading-tight">Latar Potrait</div>
+                              <div className="text-[10px] text-zinc-500 mt-0.5">Untuk HP</div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      ref={bgMobileInputRef}
+                      className="hidden"
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={handleBgMobileUpload}
+                    />
+                  </div>
+                  
+                </div>
               </div>
             </div>
 
@@ -347,17 +456,130 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
                 <span className="text-[11px] text-zinc-500">Banner yang aktif akan ditampilkan di halaman depan.</span>
               </div>
             </div>
+
+            {/* PRATINJAU BANNER */}
+            <div className="space-y-4 pt-6 border-t border-zinc-100 dark:border-zinc-800 mt-2">
+              <Label className="text-base font-bold text-zinc-800 dark:text-zinc-200">Pratinjau Banner (Desktop & Mobile)</Label>
+              <div className="flex flex-col xl:flex-row gap-6 items-start">
+                
+                {/* Desktop Preview */}
+                <div className="relative flex-1 w-full aspect-[16/9] xl:aspect-[21/9] min-h-[500px] rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-[#0a0a0a] flex items-center p-8 lg:p-12 shadow-sm">
+                  {/* Background Desktop */}
+                  {formData.background_url && (
+                    <div 
+                      className="absolute inset-0 opacity-20 pointer-events-none"
+                      style={{ backgroundImage: `url(${formData.background_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                    />
+                  )}
+                  {/* Content Desktop */}
+                  <div className="relative z-10 w-full flex flex-col-reverse md:flex-row items-center justify-between gap-8 max-w-6xl mx-auto">
+                    <div className="flex-1 space-y-6 text-center md:text-left">
+                      <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm">
+                        <Crown className="h-4 w-4 text-[#06b6d4] fill-[#06b6d4]/30" />
+                        <span className="text-xs font-bold text-zinc-300">{formData.link_url || 'OLAHAN CUMI PREMIUM #1'}</span>
+                      </div>
+                      <div className="space-y-1">
+                        <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold text-white tracking-tight">
+                          {formData.title || 'Judul Utama'}
+                        </h1>
+                        <h2 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-[#06b6d4] tracking-tight">
+                          {formData.subtitle || 'Subjudul'}
+                        </h2>
+                      </div>
+                      <p className="text-base lg:text-lg text-zinc-400 line-clamp-3 max-w-xl mx-auto md:mx-0">
+                        {formData.description || 'Deskripsi banner akan muncul di sini...'}
+                      </p>
+                      <div className="pt-4 flex items-center gap-4">
+                        <Button type="button" className="pointer-events-none h-12 text-base px-8 bg-[#06b6d4] hover:bg-[#0891b2] text-white font-semibold">
+                          {formData.link_text || 'Pesan Sekarang'} &rarr;
+                        </Button>
+                        <div className="flex items-center gap-2">
+                           <div className="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center bg-zinc-900/50 text-zinc-400">&lt;</div>
+                           <div className="w-10 h-10 rounded-full border border-zinc-700 flex items-center justify-center bg-zinc-900/50 text-zinc-400">&gt;</div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Image Desktop */}
+                    <div className="w-[280px] lg:w-[400px] xl:w-[450px] shrink-0">
+                      <div className="aspect-square rounded-full p-5" style={{ background: "conic-gradient(from 0deg, rgba(220,38,38,0.3), rgba(255,100,0,0.15), transparent, rgba(220,38,38,0.3))" }}>
+                        <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden shadow-2xl">
+                          {formData.image_url ? (
+                            <img src={formData.image_url} alt="Hero" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
+                              <ImagePlus className="h-12 w-12 text-zinc-500" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile Preview */}
+                <div className="relative w-[300px] h-[600px] shrink-0 rounded-[2.5rem] overflow-hidden border-[10px] border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 shadow-xl mx-auto xl:mx-0">
+                  {/* Notch mockup */}
+                  <div className="absolute top-0 inset-x-0 h-6 flex justify-center">
+                    <div className="w-24 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-b-xl"></div>
+                  </div>
+                  
+                  {/* Background Mobile */}
+                  {(formData.background_mobile_url || formData.background_url) && (
+                    <div 
+                      className="absolute inset-0 opacity-15 pointer-events-none"
+                      style={{ backgroundImage: `url(${formData.background_mobile_url || formData.background_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+                    />
+                  )}
+                  {/* Content Mobile */}
+                  <div className="relative z-10 w-full flex flex-col items-center text-center gap-6 mt-6">
+                    <div className="w-[180px] mx-auto">
+                      <div className="aspect-square rounded-full p-3" style={{ background: "conic-gradient(from 0deg, rgba(220,38,38,0.3), rgba(255,100,0,0.15), transparent, rgba(220,38,38,0.3))" }}>
+                        <div className="w-full h-full rounded-full bg-white dark:bg-zinc-900 overflow-hidden shadow-sm">
+                          {formData.image_url ? (
+                            <img src={formData.image_url} alt="Hero Mobile" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                              <ImagePlus className="h-6 w-6 text-zinc-300" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800">
+                        <Crown className="h-3 w-3 text-[#06b6d4] fill-[#06b6d4]/30" />
+                        <span className="text-[10px] font-bold text-zinc-800 dark:text-zinc-200">{formData.link_url || 'OLAHAN CUMI PREMIUM #1'}</span>
+                      </div>
+                      <div>
+                        <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white leading-[1.1]">
+                          <span className="block">{formData.title || 'Judul Utama'}</span>
+                          <span className="block text-primary mt-1.5">{formData.subtitle || 'Subjudul'}</span>
+                        </h1>
+                      </div>
+                      <p className="text-[13px] text-zinc-600 dark:text-zinc-400 line-clamp-3">
+                        {formData.description || 'Deskripsi banner akan muncul di sini...'}
+                      </p>
+                      <Button type="button" className="pointer-events-none w-full h-11 text-sm mt-2">
+                        {formData.link_text || 'Pesan Sekarang'}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
-            <Button type="submit" disabled={loading || uploading || uploadingBg}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Simpan Banner
-            </Button>
-          </DialogFooter>
+          <div className="fixed bottom-0 left-0 right-0 md:left-[280px] p-4 bg-white/80 dark:bg-black/80 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 flex justify-end z-50">
+            <div className="w-full max-w-none mx-auto flex justify-end gap-3 pr-4 md:pr-8">
+              <Button type="button" variant="outline" onClick={onClose} size="lg">Batal</Button>
+              <Button type="submit" disabled={loading || uploading || uploadingBg || uploadingBgMobile} size="lg" className="min-w-[150px] font-bold shadow-lg shadow-primary/20">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Simpan Perubahan
+              </Button>
+            </div>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </div>
   );
 }

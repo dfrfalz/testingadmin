@@ -231,7 +231,7 @@ export default function KeunggulanPage() {
                   </Label>
                   <Select
                     value={feature.icon}
-                    onValueChange={(val) => updateFeature(index, 'icon', val)}
+                    onValueChange={(val) => updateFeature(index, 'icon', val as string)}
                   >
                     <SelectTrigger className="w-full bg-zinc-50 dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 focus-visible:ring-primary">
                       {feature.icon ? (

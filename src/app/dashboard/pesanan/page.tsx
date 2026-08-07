@@ -38,6 +38,7 @@ export default function PesananPage() {
       const { data, error } = await supabase
         .from('orders')
         .select('*')
+        .not('short_id', 'like', 'CS-%')
         .order('created_at', { ascending: false });
       
       if (!error && data) {

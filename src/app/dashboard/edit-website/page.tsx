@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Sparkles, ListOrdered } from "lucide-react";
+import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Medal, ListOrdered, MessageSquareQuote } from "lucide-react";
 
 const editOptions = [
   {
@@ -27,7 +27,7 @@ const editOptions = [
     color: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
   },
   {
-    title: "Peta Lokasi (Maps)",
+    title: "Peta Lokasi Toko",
     description: "Atur titik kordinat Google Maps yang disematkan di Footer.",
     icon: MapPin,
     href: "/dashboard/maps",
@@ -48,7 +48,7 @@ const editOptions = [
     color: "bg-teal-500/10 text-teal-500 border border-teal-500/20"
   },
   {
-    title: "Tipografi (Font)",
+    title: "Jenis Font",
     description: "Pilih gaya huruf (font) yang sesuai dengan karakter bisnis Anda.",
     icon: Type,
     href: "/dashboard/font",
@@ -62,7 +62,7 @@ const editOptions = [
     color: "bg-rose-500/10 text-rose-500 border border-rose-500/20"
   },
   {
-    title: "FAQ (Tanya Jawab)",
+    title: "FAQ - Tanya Jawab",
     description: "Atur daftar pertanyaan dan jawaban yang sering diajukan pelanggan.",
     icon: HelpCircle,
     href: "/dashboard/faq",
@@ -71,7 +71,7 @@ const editOptions = [
   {
     title: "Keunggulan",
     description: "Ubah teks sub-judul dan daftar keunggulan produk (Kenapa Memilih Kami).",
-    icon: Sparkles,
+    icon: Medal,
     href: "/dashboard/keunggulan",
     color: "bg-fuchsia-500/10 text-fuchsia-500 border border-fuchsia-500/20"
   },
@@ -81,6 +81,13 @@ const editOptions = [
     icon: ListOrdered,
     href: "/dashboard/cara-pesan",
     color: "bg-indigo-500/10 text-indigo-500 border border-indigo-500/20"
+  },
+  {
+    title: "Testimoni Pelanggan",
+    description: "Kelola ulasan dan komentar dari pelanggan yang tampil di halaman depan.",
+    icon: MessageSquareQuote,
+    href: "/dashboard/testimoni",
+    color: "bg-sky-500/10 text-sky-500 border border-sky-500/20"
   }
 ];
 
@@ -101,27 +108,25 @@ export default function EditWebsitePage() {
           const Icon = option.icon;
           return (
             <Link key={option.title} href={option.href} className="group outline-none block">
-              <Card className="h-full border-zinc-200 dark:border-zinc-800/80 shadow-sm hover:shadow-md transition-all hover:border-primary/50 dark:hover:border-primary/50 bg-white dark:bg-zinc-900 group-focus-visible:ring-2 ring-primary relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-                   <Icon className="h-24 w-24" />
+              <Card className="h-full border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-all hover:border-zinc-300 dark:hover:border-zinc-600 bg-white dark:bg-zinc-900 group-focus-visible:ring-2 ring-primary relative overflow-hidden">
+                <div className="absolute -top-4 -right-4 p-4 opacity-5 pointer-events-none group-hover:scale-110 group-hover:-translate-x-2 group-hover:translate-y-2 transition-all duration-500">
+                   <Icon className="h-24 w-24 text-zinc-900 dark:text-zinc-100" />
                 </div>
-                <CardContent className="p-6 flex items-start gap-5 relative z-10">
-                  <div className={`p-3.5 rounded-2xl ${option.color} shadow-inner`}>
-                    <Icon className="h-6 w-6" />
+                <CardContent className="p-5 flex items-start gap-4 relative z-10">
+                  <div className="mt-0.5 p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <div className="flex-1 space-y-1.5 pt-1">
-                    <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors flex justify-between items-center gap-2">
-                      <span className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors flex items-center gap-2">
                         {option.title}
                         {(option as any).isComingSoon && (
-                          <span className="text-[10px] font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Segera</span>
+                          <span className="text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 px-2 py-0.5 rounded-full uppercase tracking-wider">Segera</span>
                         )}
-                      </span>
-                      <div className="bg-zinc-100 dark:bg-zinc-800 p-1 rounded-full group-hover:bg-primary/10 transition-colors shrink-0">
-                        <ChevronRight className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all text-zinc-500 group-hover:text-primary" />
-                      </div>
-                    </h3>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed pr-6">
+                      </h3>
+                      <ChevronRight className="h-4 w-4 text-zinc-400 group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
+                    </div>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 pr-2 leading-relaxed">
                       {option.description}
                     </p>
                   </div>

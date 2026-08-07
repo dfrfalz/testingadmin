@@ -43,6 +43,7 @@ export default function PelangganPage() {
       const { data, error } = await supabase
         .from('orders')
         .select('id, customer_whatsapp, customer_name, customer_email, total, created_at')
+        .neq('status', 'CS_CHAT')
         .order('created_at', { ascending: true });
 
       if (!error && data) {

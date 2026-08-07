@@ -18,7 +18,8 @@ import {
   Palette,
   Image,
   MapPin,
-  LayoutTemplate
+  LayoutTemplate,
+  Ticket
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ const sidebarLinks = [
   { name: "Pelanggan", href: "/dashboard/pelanggan", icon: Users },
   { name: "Jadwal", href: "/dashboard/jadwal", icon: CalendarClock },
   { name: "Edit Website", href: "/dashboard/edit-website", icon: LayoutTemplate },
+  { name: "Promo", href: "/dashboard/promo", icon: Ticket },
   { name: "Pengaturan", href: "/dashboard/pengaturan", icon: Settings },
 ];
 
@@ -56,6 +58,7 @@ const pageTitles: Record<string, string> = {
   "/dashboard/pengumuman": "Pengaturan Teks Pengumuman",
   "/dashboard/seo": "SEO & Pencarian",
   "/dashboard/faq": "FAQ (Tanya Jawab)",
+  "/dashboard/promo": "Promo & Diskon",
   "/dashboard/pengaturan": "Pengaturan",
 };
 
@@ -154,10 +157,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-6">
-          <Link href="/dashboard" className="flex items-center gap-2 justify-center py-2 mb-2 hover:opacity-80 transition-opacity">
-            <img src={logoLight} alt="Cumita Logo" className="h-14 w-auto object-contain dark:hidden drop-shadow-md" />
-            <img src={logoDark} alt="Cumita Logo" className="h-14 w-auto object-contain hidden dark:block drop-shadow-md" />
+        <div className="px-6 py-4">
+          <Link href="/dashboard" className="flex items-center justify-center hover:opacity-80 transition-opacity">
+            <img src={logoLight} alt="Cumita Logo" className="h-20 w-auto object-contain dark:hidden drop-shadow-md" />
+            <img src={logoDark} alt="Cumita Logo" className="h-20 w-auto object-contain hidden dark:block drop-shadow-md" />
           </Link>
         </div>
 

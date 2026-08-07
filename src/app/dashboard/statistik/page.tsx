@@ -41,6 +41,7 @@ export default function StatistikPage() {
       const { data, error } = await supabase
         .from('orders')
         .select('*')
+        .not('short_id', 'like', 'CS-%')
         .order('created_at', { ascending: true });
       
       if (!error && data) {

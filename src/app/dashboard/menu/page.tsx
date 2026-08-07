@@ -314,54 +314,55 @@ export default function MenuPage() {
                 {filteredMenus.map((menu) => (
                   <Card 
                     key={menu.id} 
-                    className={`overflow-hidden transition-all duration-200 border-2 ${menu.status === 'arsip' ? 'opacity-60 grayscale-[50%]' : ''} ${selectedMenuIds.includes(menu.id) ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'}`}
+                    className={`flex flex-col h-full overflow-hidden transition-all duration-200 border-2 ${menu.status === 'arsip' ? 'opacity-60 grayscale-[50%]' : ''} ${selectedMenuIds.includes(menu.id) ? 'border-primary ring-2 ring-primary/20' : 'border-transparent'}`}
                   >
-                    <div className="relative aspect-square bg-zinc-100 dark:bg-zinc-800 group">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleMenuSelection(menu.id); }}
-                        className={`absolute top-2 left-2 z-10 w-6 h-6 rounded flex items-center justify-center transition-all ${
-                          selectedMenuIds.includes(menu.id) 
-                            ? 'bg-primary text-white border-primary border-2 shadow-sm' 
-                            : 'bg-black/20 text-transparent border-white/70 border-2 opacity-0 group-hover:opacity-100 hover:bg-black/40'
-                        }`}
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                      
-                      {menu.image_url ? (
-                        <img src={menu.image_url} alt={menu.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-zinc-400">No Image</div>
-                      )}
-                      {menu.status === 'arsip' && (
-                        <div className="absolute top-2 right-2 bg-zinc-900/80 text-white text-xs px-2 py-1 rounded font-medium backdrop-blur-sm">
-                          Diarsipkan
-                        </div>
-                      )}
+                    <div className="relative w-full pt-[100%] flex-none bg-zinc-100 dark:bg-zinc-800 group">
+                      <div className="absolute inset-0">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); toggleMenuSelection(menu.id); }}
+                          className={`absolute top-2 left-2 z-10 w-6 h-6 rounded flex items-center justify-center transition-all ${
+                            selectedMenuIds.includes(menu.id) 
+                              ? 'bg-primary text-white border-primary border-2 shadow-sm' 
+                              : 'bg-black/20 text-transparent border-white/70 border-2 opacity-0 group-hover:opacity-100 hover:bg-black/40'
+                          }`}
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        
+                        {menu.image_url ? (
+                          <img src={menu.image_url} alt={menu.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-zinc-400">No Image</div>
+                        )}
+                        {menu.status === 'arsip' && (
+                          <div className="absolute top-2 right-2 z-10 bg-zinc-900/80 text-white text-xs px-2 py-1 rounded font-medium backdrop-blur-sm">
+                            Diarsipkan
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="font-bold text-lg leading-tight">{menu.name}</h3>
-                          <p className="text-primary font-bold">{formatIDR(menu.price)}</p>
-                        </div>
+                    <CardContent className="p-4 flex flex-col flex-1">
+                      <div className="mb-2">
+                        <h3 className="font-bold text-lg leading-tight line-clamp-2 min-h-[3rem]">{menu.name}</h3>
+                        <p className="text-primary font-bold">{formatIDR(menu.price)}</p>
                       </div>
                       
                       <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-4 h-10">
                         {menu.desc}
                       </p>
                       
-                      <div className="flex items-center gap-4 text-xs font-medium mb-4">
-                        <div className="flex items-center gap-1 text-red-500">
-                          <Flame className="w-3 h-3" />
-                          Lv. {menu.spicy_level}
+                      <div className="mt-auto">
+                        <div className="flex items-center gap-4 text-xs font-medium mb-4">
+                          <div className="flex items-center gap-1 text-red-500">
+                            <Flame className="w-3 h-3" />
+                            Lv. {menu.spicy_level}
+                          </div>
+                          <div className="text-zinc-500">
+                            Stok: {menu.stock}
+                          </div>
                         </div>
-                        <div className="text-zinc-500">
-                          Stok: {menu.stock}
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-3 gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                        <div className="grid grid-cols-3 gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                         <Button variant="outline" size="sm" onClick={() => handleEdit(menu)} className="gap-1">
                           <Edit2 className="w-3 h-3" /> Edit
                         </Button>
@@ -376,6 +377,7 @@ export default function MenuPage() {
                         <Button variant="destructive" size="sm" onClick={() => confirmDeleteMenu(menu.id)} className="gap-1">
                           <Trash2 className="w-3 h-3" /> Hapus
                         </Button>
+                      </div>
                       </div>
                     </CardContent>
                   </Card>
