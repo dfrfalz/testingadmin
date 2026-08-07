@@ -300,7 +300,6 @@ export default function PromoPage() {
                           mode="single"
                           selected={startDate}
                           onSelect={setStartDate}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
@@ -324,7 +323,6 @@ export default function PromoPage() {
                           selected={endDate}
                           onSelect={setEndDate}
                           disabled={(date) => startDate ? date < new Date(new Date(startDate).setHours(0,0,0,0)) : false}
-                          initialFocus
                         />
                       </PopoverContent>
                     </Popover>
