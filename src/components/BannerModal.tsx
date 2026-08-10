@@ -48,9 +48,22 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
   const [uploading, setUploading] = useState(false);
   const [uploadingBg, setUploadingBg] = useState(false);
   const [uploadingBgMobile, setUploadingBgMobile] = useState(false);
+  const [themeColor, setThemeColor] = useState<string>("#DC2626");
+  const [themeGradient, setThemeGradient] = useState<string>("#F97316");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
   const bgMobileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function fetchTheme() {
+      const { data } = await supabase.from('store_settings').select('theme_color, theme_gradient').eq('id', 'default').single();
+      if (data) {
+        if (data.theme_color) setThemeColor(data.theme_color);
+        if (data.theme_gradient) setThemeGradient(data.theme_gradient);
+      }
+    }
+    fetchTheme();
+  }, []);
 
   useEffect(() => {
     if (initialData) {
@@ -475,14 +488,14 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
                   <div className="relative z-10 w-full flex flex-row items-center justify-between gap-4 sm:gap-8 max-w-6xl mx-auto">
                     <div className="flex-1 space-y-2 sm:space-y-6 text-left">
                       <div className="inline-flex items-center gap-1.5 px-2 py-1 sm:px-4 sm:py-2 rounded-full bg-zinc-900/50 border border-zinc-800 backdrop-blur-sm">
-                        <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-[#06b6d4] fill-[#06b6d4]/30" />
+                        <Crown className="h-3 w-3 sm:h-4 sm:w-4" style={{ color: themeColor, fill: `${themeColor}40` }} />
                         <span className="text-[10px] sm:text-xs font-bold text-zinc-300">{formData.link_url || 'OLAHAN CUMI PREMIUM #1'}</span>
                       </div>
                       <div className="space-y-0.5 sm:space-y-1">
                         <h1 className="text-xl sm:text-4xl lg:text-5xl xl:text-7xl font-bold text-white tracking-tight leading-tight">
                           {formData.title || 'Judul Utama'}
                         </h1>
-                        <h2 className="text-lg sm:text-3xl lg:text-4xl xl:text-6xl font-bold text-[#06b6d4] tracking-tight leading-tight">
+                        <h2 className="text-lg sm:text-3xl lg:text-4xl xl:text-6xl font-bold tracking-tight leading-tight" style={{ color: themeColor }}>
                           {formData.subtitle || 'Subjudul'}
                         </h2>
                       </div>
@@ -490,7 +503,7 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
                         {formData.description || 'Deskripsi banner akan muncul di sini...'}
                       </p>
                       <div className="pt-2 sm:pt-4 flex items-center gap-2 sm:gap-4">
-                        <Button type="button" className="pointer-events-none h-8 px-4 sm:h-12 text-xs sm:text-base sm:px-8 bg-[#06b6d4] hover:bg-[#0891b2] text-white font-semibold">
+                        <Button type="button" className="pointer-events-none border-0 h-8 px-4 sm:h-12 text-xs sm:text-base sm:px-8 text-white font-semibold" style={{ background: `linear-gradient(to right, ${themeColor}, ${themeGradient})` }}>
                           {formData.link_text || 'Pesan Sekarang'} &rarr;
                         </Button>
                         <div className="hidden sm:flex items-center gap-2">
@@ -547,19 +560,19 @@ export function BannerModal({ isOpen, onClose, onSuccess, initialData }: BannerM
                     </div>
                     <div className="space-y-4">
                       <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800">
-                        <Crown className="h-3 w-3 text-[#06b6d4] fill-[#06b6d4]/30" />
+                        <Crown className="h-3 w-3" style={{ color: themeColor, fill: `${themeColor}40` }} />
                         <span className="text-[10px] font-bold text-zinc-800 dark:text-zinc-200">{formData.link_url || 'OLAHAN CUMI PREMIUM #1'}</span>
                       </div>
                       <div>
                         <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white leading-[1.1]">
                           <span className="block">{formData.title || 'Judul Utama'}</span>
-                          <span className="block text-primary mt-1.5">{formData.subtitle || 'Subjudul'}</span>
+                          <span className="block mt-1.5" style={{ color: themeColor }}>{formData.subtitle || 'Subjudul'}</span>
                         </h1>
                       </div>
                       <p className="text-[13px] text-zinc-600 dark:text-zinc-400 line-clamp-3">
                         {formData.description || 'Deskripsi banner akan muncul di sini...'}
                       </p>
-                      <Button type="button" className="pointer-events-none w-full h-11 text-sm mt-2">
+                      <Button type="button" className="pointer-events-none border-0 w-full h-11 text-sm mt-2 text-white font-semibold" style={{ background: `linear-gradient(to right, ${themeColor}, ${themeGradient})` }}>
                         {formData.link_text || 'Pesan Sekarang'}
                       </Button>
                     </div>

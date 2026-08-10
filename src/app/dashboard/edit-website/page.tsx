@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Medal, ListOrdered, MessageSquareQuote, ShoppingBag } from "lucide-react";
+import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Medal, ListOrdered, MessageSquareQuote, ShoppingBag, QrCode } from "lucide-react";
 
 const editOptions = [
+  {
+    title: "QR Code Toko",
+    description: "Buat dan unduh QR Code khusus untuk website Anda (mendukung tema terang/gelap).",
+    icon: QrCode,
+    href: "/dashboard/qr-code",
+    color: "bg-slate-500/10 text-slate-500 border border-slate-500/20"
+  },
   {
     title: "Banner Beranda",
     description: "Ubah gambar banner utama yang tampil di halaman depan website.",

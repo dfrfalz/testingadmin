@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Poppins, Geist } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -19,7 +19,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { supabase } from "@/lib/supabase";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 export default async function RootLayout({
   children,
@@ -31,7 +31,7 @@ export default async function RootLayout({
   const themeGradient = data?.theme_gradient;
 
   return (
-    <html lang="id" className={cn("h-full", poppins.variable, "font-sans", geist.variable)} suppressHydrationWarning>
+    <html lang="id" className={cn("h-full", poppins.variable, "font-sans")} suppressHydrationWarning>
       <head>
         {(themeColor || themeGradient) && (
           <style dangerouslySetInnerHTML={{ __html: `

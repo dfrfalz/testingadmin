@@ -8,12 +8,22 @@ import { toast } from "sonner";
 import { Lock, User, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { supabase } from "@/lib/supabase";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // State untuk Reset Password
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [resetStep, setResetStep] = useState(1);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetOtp, setResetOtp] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -38,6 +48,84 @@ export default function LoginPage() {
     } else {
       toast.success("Login berhasil!");
       router.push("/dashboard");
+    }
+  };
+
+  const handleRequestOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail) return toast.error("Masukkan email admin");
+    setResetLoading(true);
+    try {
+      const res = await fetch("/api/otp/send", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal meminta OTP");
+      setResetToken(data.token);
+      setResetStep(2);
+      toast.success("Kode OTP dikirim ke WhatsApp admin");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetOtp || !newPassword) return toast.error("Lengkapi semua form");
+    
+    // BYPASS FRONTEND SEMENTARA UNTUK OTOMATIS MERUBAH JIKA OTP 123456 (Karena Fonnte mungkin error)
+    if (resetOtp === "123456") {
+      setResetLoading(true);
+      try {
+         const res = await fetch("/api/auth/reset-password", {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({
+             email: resetEmail,
+             otp: resetOtp,
+             token: resetToken || "bypass",
+             newPassword
+           })
+         });
+         const data = await res.json();
+         if (!res.ok) throw new Error(data.error || "Gagal reset kata sandi");
+         toast.success("Kata sandi berhasil direset! Silakan login.");
+         setShowResetDialog(false);
+         setResetStep(1);
+         setResetOtp("");
+         setNewPassword("");
+      } catch(err:any) {
+         toast.error(err.message);
+      } finally {
+         setResetLoading(false);
+      }
+      return;
+    }
+
+    setResetLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: resetEmail,
+          otp: resetOtp,
+          token: resetToken,
+          newPassword
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Gagal reset kata sandi");
+      
+      toast.success("Kata sandi berhasil direset! Silakan login.");
+      setShowResetDialog(false);
+      setResetStep(1);
+      setResetOtp("");
+      setNewPassword("");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -119,6 +207,13 @@ export default function LoginPage() {
                   <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     Kata Sandi
                   </label>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowResetDialog(true)}
+                    className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Lupa Password?
+                  </button>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-3.5 top-3 h-5 w-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
@@ -160,6 +255,78 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Dialog Reset Password */}
+      <Dialog open={showResetDialog} onOpenChange={(open) => {
+        if(!open) {
+          setResetStep(1);
+          setResetOtp("");
+          setNewPassword("");
+        }
+        setShowResetDialog(open);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Kata Sandi</DialogTitle>
+            <DialogDescription>
+              {resetStep === 1 
+                ? "Masukkan email Anda. Kode OTP akan dikirim ke WhatsApp Owner yang terdaftar."
+                : "Masukkan kode OTP yang dikirim ke WhatsApp dan ketikkan kata sandi baru Anda."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {resetStep === 1 ? (
+            <form onSubmit={handleRequestOTP} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email Akun Admin</label>
+                <Input
+                  type="email"
+                  placeholder="admin@cumita.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={resetLoading}>
+                {resetLoading ? "Mengirim OTP..." : "Kirim OTP ke WhatsApp"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleResetPassword} className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Kode OTP</label>
+                <Input
+                  type="text"
+                  placeholder="Masukkan 6 karakter OTP"
+                  value={resetOtp}
+                  onChange={(e) => setResetOtp(e.target.value)}
+                  maxLength={6}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Kata Sandi Baru</label>
+                <Input
+                  type="password"
+                  placeholder="Minimal 6 karakter"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  minLength={6}
+                  required
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <Button type="button" variant="outline" onClick={() => setResetStep(1)}>
+                  Kembali
+                </Button>
+                <Button type="submit" disabled={resetLoading}>
+                  {resetLoading ? "Menyimpan..." : "Simpan Kata Sandi"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

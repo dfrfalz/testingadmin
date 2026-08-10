@@ -20,8 +20,15 @@ import {
 import { supabase } from "@/lib/supabase";
 import { formatIDR } from "@/lib/utils";
 import { TrendingUp, Users, ShoppingBag, DollarSign, Calendar } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#06b6d4'];
 
 export default function StatistikPage() {
   const [loading, setLoading] = useState(true);
@@ -35,14 +42,31 @@ export default function StatistikPage() {
   const [salesByDay, setSalesByDay] = useState<any[]>([]);
   const [topItems, setTopItems] = useState<any[]>([]);
   const [orderStatusData, setOrderStatusData] = useState<any[]>([]);
+  const [period, setPeriod] = useState("semua");
 
   useEffect(() => {
     async function fetchStatistik() {
-      const { data, error } = await supabase
+      setLoading(true);
+      let query = supabase
         .from('orders')
         .select('*')
         .not('short_id', 'like', 'CS-%')
         .order('created_at', { ascending: true });
+      
+      if (period !== 'semua') {
+        const now = new Date();
+        let startDate = new Date();
+        if (period === 'minggu') {
+          startDate.setDate(now.getDate() - 7);
+        } else if (period === 'bulan') {
+          startDate.setDate(now.getDate() - 30);
+        } else if (period === 'tahun') {
+          startDate.setFullYear(now.getFullYear() - 1);
+        }
+        query = query.gte('created_at', startDate.toISOString());
+      }
+      
+      const { data, error } = await query;
       
       if (!error && data) {
         let revenue = 0;
@@ -103,7 +127,7 @@ export default function StatistikPage() {
     }
 
     fetchStatistik();
-  }, []);
+  }, [period]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -131,6 +155,24 @@ export default function StatistikPage() {
       );
     }
     return null;
+  };
+
+  const CustomLegend = ({ payload }: any) => {
+    return (
+      <ul className="flex flex-wrap justify-center gap-x-4 gap-y-2 px-2 pt-4">
+        {payload.map((entry: any, index: number) => (
+          <li key={`item-${index}`} className="flex items-center text-xs">
+            <div 
+              className="w-2.5 h-2.5 rounded-full mr-1.5 shrink-0" 
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-zinc-600 dark:text-zinc-300 font-medium truncate max-w-[130px]" title={entry.value}>
+              {entry.value}
+            </span>
+          </li>
+        ))}
+      </ul>
+    );
   };
 
   return (
@@ -200,9 +242,24 @@ export default function StatistikPage() {
         
         {/* Revenue Trend Chart */}
         <Card className="lg:col-span-4 border-none shadow-sm bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Tren Pendapatan Harian</CardTitle>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">Grafik pendapatan kotor penjualan per hari.</p>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Tren Pendapatan Harian</CardTitle>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Grafik pendapatan kotor penjualan per hari.</p>
+            </div>
+            
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-[180px] bg-white dark:bg-zinc-900 h-8">
+                <Calendar className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Pilih Periode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="semua">Semua Waktu</SelectItem>
+                <SelectItem value="minggu">7 Hari Terakhir</SelectItem>
+                <SelectItem value="bulan">30 Hari Terakhir</SelectItem>
+                <SelectItem value="tahun">1 Tahun Terakhir</SelectItem>
+              </SelectContent>
+            </Select>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -265,9 +322,10 @@ export default function StatistikPage() {
                       data={topItems}
                       cx="50%"
                       cy="45%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={5}
+                      innerRadius={65}
+                      outerRadius={85}
+                      paddingAngle={3}
+                      cornerRadius={4}
                       dataKey="value"
                       stroke="none"
                     >
@@ -278,9 +336,7 @@ export default function StatistikPage() {
                     <Tooltip content={<CustomPieTooltip />} />
                     <Legend 
                       verticalAlign="bottom" 
-                      height={36} 
-                      iconType="circle"
-                      wrapperStyle={{ fontSize: '12px' }}
+                      content={<CustomLegend />}
                     />
                   </PieChart>
                 </ResponsiveContainer>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Download, MoreHorizontal, ChevronDown } from "lucide-react";
+import { Search, Filter, Download, MoreHorizontal, ChevronDown, Printer } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { formatIDR } from "@/lib/utils";
 import { toast } from "sonner";
@@ -161,8 +161,13 @@ export default function PesananPage() {
     toast.success("Data pesanan berhasil diekspor!");
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="space-y-6">
+    <>
+    <div className="space-y-6 print:hidden">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Semua Pesanan</h2>
@@ -232,8 +237,9 @@ export default function PesananPage() {
                   <th className="px-4 py-3 font-medium">Item Pembelian</th>
                   <th className="px-4 py-3 font-medium">Waktu</th>
                   <th className="px-4 py-3 font-medium">Total</th>
+                  <th className="px-4 py-3 font-medium">Pembayaran</th>
                   <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium text-right">Aksi</th>
+                  <th className="px-4 py-3 font-medium text-right">Detail</th>
                 </tr>
               </thead>
               <tbody>
@@ -286,6 +292,11 @@ export default function PesananPage() {
                         <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400 max-w-[200px] truncate" title={itemsText}>{itemsText}</td>
                         <td className="px-4 py-3 text-zinc-600 dark:text-zinc-300">{orderDate}</td>
                         <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{formatIDR(order.total)}</td>
+                        <td className="px-4 py-3">
+                          <span className="bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 font-semibold px-2.5 py-1 rounded-md text-[10px] uppercase tracking-wider">
+                            {order.payment_method || '-'}
+                          </span>
+                        </td>
                         <td className="px-4 py-3">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -363,6 +374,10 @@ export default function PesananPage() {
                     <span className="text-zinc-500">WhatsApp</span>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">{selectedOrder.customer_whatsapp}</span>
                   </div>
+                  <div className="flex justify-between border-b border-zinc-100 dark:border-zinc-800/50 pb-2">
+                    <span className="text-zinc-500">Metode Pembayaran</span>
+                    <span className="font-semibold text-primary uppercase">{selectedOrder.payment_method || '-'}</span>
+                  </div>
                   <div className="flex flex-col gap-1.5 pt-1">
                     <span className="text-zinc-500">Alamat Pengiriman</span>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800 leading-relaxed">
@@ -412,12 +427,59 @@ export default function PesananPage() {
               </div>
             </div>
             
-            <div className="p-4 sm:p-5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex justify-end">
+            <div className="p-4 sm:p-5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex justify-between">
+              <Button onClick={handlePrint} variant="outline" className="px-4 rounded-full font-semibold shadow-sm gap-2">
+                <Printer className="w-4 h-4" /> Cetak Struk
+              </Button>
               <Button onClick={() => setSelectedOrder(null)} className="px-6 rounded-full font-semibold shadow-sm">Tutup</Button>
             </div>
           </div>
         </div>
       )}
     </div>
+
+    {/* Printable Receipt Area (58mm Thermal Style) */}
+    {selectedOrder && (
+      <div className="hidden print:block text-black bg-white" style={{ width: '58mm', margin: '0 auto', fontSize: '12px', fontFamily: 'monospace', lineHeight: '1.2' }}>
+        <style type="text/css" media="print">
+          {`
+            @page { size: 58mm auto; margin: 0; }
+            body { margin: 0; padding: 4mm; background: white; }
+          `}
+        </style>
+        <div className="text-center mb-4">
+          <h2 className="font-bold text-base m-0">DAPUR RASA</h2>
+          <p className="text-[10px] m-0">Jl. Contoh Alamat No. 123</p>
+          <p className="text-[10px] m-0 border-b border-black pb-2 border-dashed">Telp: 08123456789</p>
+        </div>
+        <div className="mb-2 text-[10px]">
+          <div className="flex justify-between"><span>ID:</span><span>{selectedOrder.short_id}</span></div>
+          <div className="flex justify-between"><span>Tgl:</span><span>{new Date(selectedOrder.created_at).toLocaleString('id-ID')}</span></div>
+          <div className="flex justify-between"><span>Plg:</span><span>{selectedOrder.customer_name}</span></div>
+        </div>
+        <div className="border-b border-black border-dashed mb-2 pb-2 text-[11px]">
+          {selectedOrder.items?.map((item: any, i: number) => (
+            <div key={i} className="mb-1">
+              <div>{item.name}</div>
+              <div className="flex justify-between">
+                <span>{item.qty} x {formatIDR(item.price)}</span>
+                <span>{formatIDR(item.price * item.qty)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="text-[11px] mb-2 border-b border-black border-dashed pb-2">
+          <div className="flex justify-between"><span>Subtotal:</span><span>{formatIDR(selectedOrder.subtotal)}</span></div>
+          <div className="flex justify-between"><span>Ongkir:</span><span>{formatIDR(selectedOrder.shipping)}</span></div>
+          <div className="flex justify-between font-bold mt-1 text-sm"><span>TOTAL:</span><span>{formatIDR(selectedOrder.total)}</span></div>
+          <div className="flex justify-between mt-1 border-t border-black border-dashed pt-1"><span>Pembayaran:</span><span className="uppercase">{selectedOrder.payment_method || '-'}</span></div>
+        </div>
+        <div className="text-center text-[10px] mt-4">
+          <p>Terima Kasih Atas Pesanan Anda!</p>
+          <p>Powered by Cumita</p>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

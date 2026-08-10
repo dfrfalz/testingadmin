@@ -13,6 +13,7 @@ import { toast } from "sonner";
 export default function LogoPage() {
   const [logoLightUrl, setLogoLightUrl] = useState("/logo_cumita.png");
   const [logoDarkUrl, setLogoDarkUrl] = useState("/logo_tema_gelap.png");
+  const [logoTagline, setLogoTagline] = useState("CITA RASA PEDAS PREMIUM");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLight, setUploadingLight] = useState(false);
@@ -23,13 +24,14 @@ export default function LogoPage() {
       setLoading(true);
       const { data, error } = await supabase
         .from('store_settings')
-        .select('logo_light_url, logo_dark_url')
+        .select('logo_light_url, logo_dark_url, logo_tagline')
         .eq('id', 'default')
         .single();
         
       if (data && !error) {
         if (data.logo_light_url) setLogoLightUrl(data.logo_light_url);
         if (data.logo_dark_url) setLogoDarkUrl(data.logo_dark_url);
+        if (data.logo_tagline) setLogoTagline(data.logo_tagline);
       }
       setLoading(false);
     };
@@ -81,6 +83,7 @@ export default function LogoPage() {
       .update({
         logo_light_url: logoLightUrl || "/logo_cumita.png",
         logo_dark_url: logoDarkUrl || "/logo_tema_gelap.png",
+        logo_tagline: logoTagline,
         updated_at: new Date().toISOString(),
       })
       .eq('id', 'default');
@@ -168,6 +171,21 @@ export default function LogoPage() {
                 <div className="mt-4 p-8 rounded-xl border border-zinc-800 bg-zinc-950 flex items-center justify-center relative group flex-1 min-h-[300px]">
                   <img src={logoDarkUrl || "/logo_tema_gelap.png"} alt="Preview Dark" className="max-h-full max-w-full object-contain drop-shadow-sm" onError={(e) => { e.currentTarget.src = "/logo_tema_gelap.png"; }} />
                 </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800/80">
+              <div className="space-y-3 max-w-xl">
+                <Label className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">Teks Slogan (Tagline)</Label>
+                <Input 
+                  value={logoTagline} 
+                  onChange={(e) => setLogoTagline(e.target.value)} 
+                  placeholder="CITA RASA PEDAS PREMIUM" 
+                  className="h-11"
+                />
+                <p className="text-[11px] text-zinc-500">
+                  Teks ini akan muncul di bawah logo pada layar loading (SplashScreen). Warnanya akan otomatis mengikuti warna Tema Utama Anda.
+                </p>
               </div>
             </div>
 
