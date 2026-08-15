@@ -31,8 +31,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 const sidebarLinks = [
   { name: "Dasbor", href: "/dashboard", icon: LayoutDashboard, roles: ["Admin", "Kasir"] },
   { name: "Kasir POS", href: "/dashboard/pos", icon: ShoppingBag, roles: ["Admin", "Kasir"] },
-  { name: "Pesanan", href: "/dashboard/pesanan", icon: ShoppingBag, roles: ["Admin", "Kasir", "Dapur"] },
-  { name: "Menu", href: "/dashboard/menu", icon: Utensils, roles: ["Admin", "Kasir", "Dapur"] },
+  { name: "Pesanan", href: "/dashboard/pesanan", icon: ShoppingBag, roles: ["Admin", "Kasir"] },
+  { name: "Menu", href: "/dashboard/menu", icon: Utensils, roles: ["Admin", "Kasir"] },
   { name: "Statistik", href: "/dashboard/statistik", icon: BarChart3, roles: ["Admin"] },
   { name: "Pesan", href: "/dashboard/message", icon: MessageSquare, roles: ["Admin", "Kasir"] },
   { name: "Pelanggan", href: "/dashboard/pelanggan", icon: Users, roles: ["Admin", "Kasir"] },

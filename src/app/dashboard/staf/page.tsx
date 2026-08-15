@@ -62,6 +62,14 @@ export default function StaffPage() {
     if (!email || !password || !role) {
       return toast.error("Semua field wajib diisi");
     }
+
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    
+    if (password.length < 6 || !hasUpperCase || !hasLowerCase || !hasNumber) {
+      return toast.error("Kata sandi harus minimal 6 karakter, mengandung huruf besar, huruf kecil, dan angka.");
+    }
     
     setIsSubmitting(true);
     try {
@@ -126,7 +134,7 @@ export default function StaffPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Manajemen Staf</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Atur akses login untuk Admin, Kasir, dan Bagian Dapur.</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Atur akses login untuk akun Kasir.</p>
         </div>
         <Button onClick={() => setShowAddDialog(true)} className="gap-2 shadow-sm rounded-full">
           <UserPlus className="h-4 w-4" /> Tambah Staf
@@ -196,15 +204,17 @@ export default function StaffPage() {
       </Card>
 
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Tambah Akun Staf Baru</DialogTitle>
-            <DialogDescription>
-              Buat akun agar staf dapat login ke Dashboard. Admin memiliki akses penuh, Kasir mengatur pesanan, dan Dapur melihat menu/stok.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 shadow-2xl rounded-2xl bg-white dark:bg-zinc-950">
+          <div className="bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-900/50 dark:to-zinc-950 px-6 pt-8 pb-6 border-b border-zinc-100 dark:border-zinc-800/50">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Tambah Akun Staf Baru</DialogTitle>
+              <DialogDescription className="mt-2 leading-relaxed">
+                Buat akun Kasir agar staf dapat login ke Dashboard untuk memproses pesanan dan memantau menu.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <form onSubmit={handleAddStaff} className="space-y-4 py-4">
+          <form onSubmit={handleAddStaff} className="p-6 space-y-5">
             <div className="space-y-2">
               <label className="text-sm font-medium">Email Staf</label>
               <Input
@@ -212,47 +222,40 @@ export default function StaffPage() {
                 placeholder="kasir1@cumita.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 bg-zinc-100/50 dark:bg-zinc-900/50 rounded-xl"
+                className="h-11 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Kata Sandi (Min 6 Karakter)</label>
+              <label className="text-sm font-medium">Kata Sandi</label>
               <Input
                 type="text"
                 placeholder="P4ssw0rdK4sir"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 bg-zinc-100/50 dark:bg-zinc-900/50 rounded-xl"
+                className="h-11 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl"
                 minLength={6}
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium">Peran Akses (Role)</label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger className="w-full h-12 bg-zinc-100/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-primary rounded-xl">
-                  <SelectValue placeholder="Pilih Peran" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 w-[var(--anchor-width)] min-w-[250px]">
-                  <SelectItem value="Kasir">Kasir</SelectItem>
-                  <SelectItem value="Dapur">Dapur</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-zinc-500 mt-1.5">
-                {role === "Kasir" && "Kasir memiliki akses ke Dasbor, Pesanan, Pelanggan, Menu, dan Pesan."}
-                {role === "Dapur" && "Dapur hanya memiliki akses ke Daftar Menu dan Pesanan (Tanpa Harga)."}
+              <label className="text-sm font-medium">Peran Akses</label>
+              <div className="w-full h-11 px-3 flex items-center bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-500 cursor-not-allowed">
+                Kasir
+              </div>
+              <p className="text-xs text-zinc-500 mt-2 leading-relaxed">
+                Kasir memiliki akses ke Dasbor, Kasir POS, Pesanan, Pelanggan, Menu, dan Pesan.
               </p>
             </div>
 
-            <DialogFooter className="pt-6">
-              <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)} className="rounded-xl h-11">
+            <DialogFooter className="pt-4 pb-2">
+              <Button type="button" variant="ghost" onClick={() => setShowAddDialog(false)} className="rounded-xl h-11 hover:bg-zinc-100 dark:hover:bg-zinc-900">
                 Batal
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="rounded-xl h-11 shadow-lg shadow-primary/20">
-                {isSubmitting ? "Menyimpan..." : "Simpan & Buat Akun"}
+              <Button type="submit" disabled={isSubmitting} className="rounded-xl h-11 px-6 shadow-lg shadow-primary/25 font-semibold">
+                {isSubmitting ? "Menyimpan..." : "Buat Akun Sekarang"}
               </Button>
             </DialogFooter>
           </form>
