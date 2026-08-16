@@ -84,7 +84,6 @@ export default function LogoPage() {
         logo_light_url: logoLightUrl || "/logo_cumita.png",
         logo_dark_url: logoDarkUrl || "/logo_tema_gelap.png",
         logo_tagline: logoTagline,
-        updated_at: new Date().toISOString(),
       })
       .eq('id', 'default');
 

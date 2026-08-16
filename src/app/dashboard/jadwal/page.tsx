@@ -116,7 +116,6 @@ export default function JadwalPage() {
         po_end_date: settings.poEndDate,
         po_delivery_date: settings.poDeliveryDate,
         operational_schedule: settings.operationalSchedule,
-        updated_at: new Date().toISOString(),
       })
       .eq('id', 'default');
 

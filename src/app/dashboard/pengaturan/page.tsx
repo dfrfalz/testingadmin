@@ -218,7 +218,6 @@ export default function PengaturanPage() {
         account_number: settings.paymentMethods[0]?.accountNumber || '',
         notification_new_order: settings.notificationNewOrder,
         notification_new_chat: settings.notificationNewChat,
-        updated_at: new Date().toISOString(),
       })
       .eq('id', 'default');
 

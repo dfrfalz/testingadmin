@@ -139,7 +139,6 @@ export default function MapsPage() {
       .from('store_settings')
       .update({
         maps_link: finalUrl || null,
-        updated_at: new Date().toISOString(),
       })
       .eq('id', 'default');
 

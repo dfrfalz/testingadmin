@@ -62,7 +62,6 @@ export default function TemaPage() {
       .update({
         theme_color: themeColor,
         theme_gradient: themeGradient,
-        updated_at: new Date().toISOString(),
       })
       .eq('id', 'default');
 

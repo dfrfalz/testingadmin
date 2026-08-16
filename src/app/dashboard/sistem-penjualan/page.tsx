@@ -339,7 +339,7 @@ export default function SistemPenjualanPage() {
         po_end_date: settings.endDate || null,
         po_delivery_date: settings.deliveryDate || null,
         operational_schedule: settings.schedule,
-        updated_at: new Date().toISOString(),
+        is_midtrans_production: isMidtransProduction,
       })
       .eq("id", "default");
 
