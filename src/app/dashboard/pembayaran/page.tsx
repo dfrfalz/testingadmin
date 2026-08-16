@@ -168,7 +168,7 @@ export default function PembayaranPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-5xl">
+    <div className="space-y-8 w-full max-w-none">
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -327,7 +327,7 @@ export default function PembayaranPage() {
         ))}
         
         {methods.length === 0 && (
-          <div className="col-span-full border border-dashed border-zinc-300 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-10 text-center flex flex-col items-center">
+          <div className="col-span-full border border-dashed border-zinc-300 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-10 min-h-[50vh] text-center flex flex-col items-center justify-center">
             <div className="w-16 h-16 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center shadow-sm mb-4 border border-zinc-200 dark:border-zinc-800">
               <CreditCard className="w-8 h-8 text-zinc-400" />
             </div>
