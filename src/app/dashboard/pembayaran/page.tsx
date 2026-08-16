@@ -168,7 +168,7 @@ export default function PembayaranPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-8 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -204,10 +204,10 @@ export default function PembayaranPage() {
                 <div className="space-y-2">
                   <Label>Jenis Pembayaran</Label>
                   <Select value={formData.type} onValueChange={(val: any) => setFormData(p => ({ ...p, type: val }))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Pilih jenis" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-md">
                       <SelectItem value="bank">Transfer Bank</SelectItem>
                       <SelectItem value="ewallet">E-Wallet (DANA, OVO, dll)</SelectItem>
                       <SelectItem value="qris">Scan QRIS</SelectItem>
@@ -327,11 +327,13 @@ export default function PembayaranPage() {
         ))}
         
         {methods.length === 0 && (
-          <div className="col-span-full border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-12 text-center flex flex-col items-center">
-            <CreditCard className="w-12 h-12 text-zinc-300 mb-4" />
+          <div className="col-span-full border border-dashed border-zinc-300 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-10 text-center flex flex-col items-center">
+            <div className="w-16 h-16 bg-white dark:bg-zinc-900 rounded-full flex items-center justify-center shadow-sm mb-4 border border-zinc-200 dark:border-zinc-800">
+              <CreditCard className="w-8 h-8 text-zinc-400" />
+            </div>
             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-2">Belum Ada Pembayaran</h3>
-            <p className="text-zinc-500 mb-6 max-w-sm">Anda belum menambahkan rekening bank atau e-wallet. Tambahkan sekarang agar pelanggan bisa melakukan pembayaran.</p>
-            <Button onClick={() => setIsModalOpen(true)}><Plus className="w-4 h-4 mr-2" /> Tambah Sekarang</Button>
+            <p className="text-sm text-zinc-500 mb-6 max-w-sm">Anda belum menambahkan rekening bank atau e-wallet. Tambahkan sekarang agar pelanggan bisa melakukan pembayaran.</p>
+            <Button onClick={() => setIsModalOpen(true)}><Plus className="w-4 h-4 mr-2" /> Tambah Rekening</Button>
           </div>
         )}
       </div>
