@@ -216,9 +216,10 @@ export default function PembayaranPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>{formData.type === 'bank' ? 'Nama Bank' : formData.type === 'ewallet' ? 'Pilih E-Wallet' : 'Nama QRIS'}</Label>
-                  {formData.type === 'ewallet' ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <Label>{formData.type === 'bank' ? 'Pilih / Ketik Nama Bank' : formData.type === 'ewallet' ? 'Pilih / Ketik E-Wallet' : 'Nama QRIS'}</Label>
+                  
+                  {formData.type === 'ewallet' && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
                       {['DANA', 'GoPay', 'OVO', 'ShopeePay', 'LinkAja'].map(wallet => (
                         <div 
                           key={wallet}
@@ -229,14 +230,28 @@ export default function PembayaranPage() {
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <Input 
-                      required 
-                      value={formData.bankName || ''} 
-                      onChange={e => setFormData(p => ({ ...p, bankName: e.target.value }))}
-                      placeholder={formData.type === 'bank' ? 'Contoh: BCA' : 'Contoh: QRIS Toko'}
-                    />
                   )}
+
+                  {formData.type === 'bank' && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+                      {['BCA', 'BNI', 'BRI', 'Mandiri', 'BSI', 'Permata'].map(bank => (
+                        <div 
+                          key={bank}
+                          onClick={() => setFormData(p => ({ ...p, bankName: bank }))}
+                          className={`p-2.5 rounded-lg border-2 text-center cursor-pointer text-sm font-semibold transition-all flex items-center justify-center ${formData.bankName === bank ? 'border-primary bg-primary/10 text-primary' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-600 dark:text-zinc-400'}`}
+                        >
+                          {bank}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Input 
+                    required 
+                    value={formData.bankName || ''} 
+                    onChange={e => setFormData(p => ({ ...p, bankName: e.target.value }))}
+                    placeholder={formData.type === 'bank' ? 'Atau ketik nama bank lain...' : formData.type === 'ewallet' ? 'Atau ketik e-wallet lain...' : 'Contoh: QRIS Toko'}
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -306,39 +321,65 @@ export default function PembayaranPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {methods.map((method) => (
-          <Card key={method.id} className="overflow-hidden relative group">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                  <CreditCard className="w-5 h-5" />
+        {methods.map((method) => {
+          const getCardStyle = (type: string) => {
+            switch(type) {
+              case 'bank': return 'from-blue-600 via-blue-700 to-indigo-900';
+              case 'ewallet': return 'from-violet-500 via-purple-600 to-fuchsia-900';
+              case 'qris': return 'from-emerald-500 via-teal-600 to-cyan-900';
+              default: return 'from-zinc-700 to-zinc-900';
+            }
+          };
+          
+          return (
+            <div key={method.id} className="relative group rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+              {/* Premium Gradient Background */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${getCardStyle(method.type)} opacity-95`} />
+              {/* Subtle Glassmorphic Orbs */}
+              <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-black/10 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="relative p-6 h-full flex flex-col justify-between min-h-[220px] text-white">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm border border-white/10">
+                       <CreditCard className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-bold text-lg tracking-wider drop-shadow-sm">{method.bankName}</span>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 bg-white/20 backdrop-blur-md rounded-full text-white/90 border border-white/10 shadow-sm">
+                      {method.type}
+                    </span>
+                    <button 
+                      onClick={() => handleDelete(method.id)}
+                      className="text-white/70 bg-black/20 backdrop-blur-md p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                      title="Hapus Metode"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-zinc-500">
-                    {method.type}
-                  </span>
-                  <button 
-                    onClick={() => handleDelete(method.id)}
-                    className="text-red-500 bg-red-500/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                
+                <div>
+                   <p className="text-[10px] text-white/70 uppercase tracking-widest mb-1 font-medium">Nomor Rekening / ID</p>
+                   <p className="text-2xl font-mono tracking-[0.15em] mb-4 text-white drop-shadow-md">{method.accountNumber}</p>
+                   <div className="flex justify-between items-end">
+                     <div>
+                       <p className="text-[10px] text-white/70 uppercase tracking-widest mb-0.5 font-medium">Pemilik Rekening</p>
+                       <p className="font-medium tracking-wider uppercase text-white/90 drop-shadow-sm">{method.accountName}</p>
+                     </div>
+                     {method.qrCodeUrl && (
+                       <div className="bg-white/95 p-1.5 rounded-lg shadow-sm group-hover:scale-110 transition-transform relative border border-white/20">
+                         <img src={method.qrCodeUrl} alt="QR Code" className="w-10 h-10 object-contain rounded-sm mix-blend-multiply" />
+                       </div>
+                     )}
+                   </div>
                 </div>
               </div>
-              
-              <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-50 mb-1">{method.bankName}</h3>
-              <p className="text-2xl font-mono text-primary mb-2 tracking-wide">{method.accountNumber}</p>
-              <p className="text-sm text-zinc-500 uppercase tracking-wide">A.N. {method.accountName}</p>
-              
-              {method.qrCodeUrl && (
-                <div className="mt-4 pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-800">
-                  <p className="text-xs text-zinc-500 mb-2">Terlampir Kode QR</p>
-                  <img src={method.qrCodeUrl} alt="QR Code" className="w-16 h-16 object-contain bg-white p-1 border rounded" />
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+            </div>
+          );
+        })}
         
         {methods.length === 0 && (
           <div className="col-span-full border border-dashed border-zinc-300 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl p-10 min-h-[50vh] text-center flex flex-col items-center justify-center">
