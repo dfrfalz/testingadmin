@@ -209,7 +209,7 @@ export default function PembayaranPage() {
                     </SelectTrigger>
                     <SelectContent className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-md">
                       <SelectItem value="bank">Transfer Bank</SelectItem>
-                      <SelectItem value="ewallet">E-Wallet (DANA, OVO, dll)</SelectItem>
+                      <SelectItem value="ewallet">E-Wallet</SelectItem>
                       <SelectItem value="qris">Scan QRIS</SelectItem>
                     </SelectContent>
                   </Select>
