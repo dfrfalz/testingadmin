@@ -216,13 +216,27 @@ export default function PembayaranPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>{formData.type === 'bank' ? 'Nama Bank' : formData.type === 'ewallet' ? 'Nama E-Wallet' : 'Nama QRIS'}</Label>
-                  <Input 
-                    required 
-                    value={formData.bankName || ''} 
-                    onChange={e => setFormData(p => ({ ...p, bankName: e.target.value }))}
-                    placeholder="Contoh: BCA"
-                  />
+                  <Label>{formData.type === 'bank' ? 'Nama Bank' : formData.type === 'ewallet' ? 'Pilih E-Wallet' : 'Nama QRIS'}</Label>
+                  {formData.type === 'ewallet' ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {['DANA', 'GoPay', 'OVO', 'ShopeePay', 'LinkAja'].map(wallet => (
+                        <div 
+                          key={wallet}
+                          onClick={() => setFormData(p => ({ ...p, bankName: wallet }))}
+                          className={`p-2.5 rounded-lg border-2 text-center cursor-pointer text-sm font-semibold transition-all flex items-center justify-center ${formData.bankName === wallet ? 'border-primary bg-primary/10 text-primary' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-600 dark:text-zinc-400'}`}
+                        >
+                          {wallet}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Input 
+                      required 
+                      value={formData.bankName || ''} 
+                      onChange={e => setFormData(p => ({ ...p, bankName: e.target.value }))}
+                      placeholder={formData.type === 'bank' ? 'Contoh: BCA' : 'Contoh: QRIS Toko'}
+                    />
+                  )}
                 </div>
                 
                 <div className="space-y-2">
