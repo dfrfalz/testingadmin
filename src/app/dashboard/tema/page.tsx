@@ -67,7 +67,6 @@ export default function TemaPage() {
 
     if (error) {
       toast.error(`Gagal menyimpan tema: ${error.message}`);
-      console.error(error);
     } else {
       toast.success("Tema warna berhasil diperbarui! Silakan refresh halaman untuk melihat perubahan secara penuh.");
       document.documentElement.style.setProperty('--primary', themeColor);
