@@ -258,9 +258,14 @@ export default function PembayaranPage() {
                   <Label>{formData.type === 'ewallet' ? 'Nomor HP' : 'Nomor Rekening / ID'}</Label>
                   <Input 
                     required 
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={20}
                     value={formData.accountNumber || ''} 
-                    onChange={e => setFormData(p => ({ ...p, accountNumber: e.target.value }))}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setFormData(p => ({ ...p, accountNumber: val }));
+                    }}
                     placeholder={formData.type === 'ewallet' ? 'Contoh: 08123456789' : 'Contoh: 8735084321'}
                   />
                 </div>
