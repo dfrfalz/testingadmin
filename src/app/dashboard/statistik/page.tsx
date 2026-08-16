@@ -248,7 +248,7 @@ export default function StatistikPage() {
               <p className="text-sm text-zinc-500 dark:text-zinc-400">Grafik pendapatan kotor penjualan per hari.</p>
             </div>
             
-            <Select value={period} onValueChange={(val) => setPeriod(val)}>
+            <Select value={period} onValueChange={(val) => setPeriod(val as string)}>
               <SelectTrigger className="w-[180px] bg-white dark:bg-zinc-900 h-8">
                 <Calendar className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Pilih Periode" />

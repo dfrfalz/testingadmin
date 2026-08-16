@@ -9,7 +9,7 @@ import Link from "next/link";
 import { Save, Loader2, Type, ArrowLeft } from "lucide-react";
 import { 
   Poppins, Playfair_Display, Inter, Outfit, Plus_Jakarta_Sans, Roboto, Montserrat, Nunito, Lora,
-  Merriweather, Cinzel, Lato, Open_Sans, Raleway, Cormorant_Garamond, Bebas_Neue, Pacifico, Space_Grotesk 
+  Merriweather, Lato, Open_Sans, Raleway, Cormorant_Garamond, Bebas_Neue, Pacifico, Space_Grotesk 
 } from "next/font/google";
 import { toast } from "sonner";
 
@@ -23,7 +23,6 @@ const montserrat = Montserrat({ subsets: ["latin"], weight: ["400", "500", "600"
 const nunito = Nunito({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const lora = Lora({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const merriweather = Merriweather({ subsets: ["latin"], weight: ["300", "400", "700", "900"] });
-const cinzel = Cinzel({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const lato = Lato({ subsets: ["latin"], weight: ["300", "400", "700", "900"] });
 const openSans = Open_Sans({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
 const raleway = Raleway({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
@@ -43,7 +42,6 @@ const fontOptions = [
   { id: "lora", name: "Lora", description: "Serif elegan dengan lengkungan yang artistik", className: lora.className },
   { id: "playfair", name: "Playfair Display", description: "Klasik dengan sentuhan serif yang mewah", className: playfair.className },
   { id: "merriweather", name: "Merriweather", description: "Klasik, formal, dan sangat mudah dibaca", className: merriweather.className },
-  { id: "cinzel", name: "Cinzel", description: "Megah, elegan, terinspirasi dari tulisan Romawi", className: cinzel.className },
   { id: "lato", name: "Lato", description: "Profesional, hangat, dan sangat seimbang", className: lato.className },
   { id: "opensans", name: "Open Sans", description: "Netral, bersih, dan sangat optimal untuk layar", className: openSans.className },
   { id: "raleway", name: "Raleway", description: "Elegan, tipis, dan sangat modern", className: raleway.className },
