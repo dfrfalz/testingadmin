@@ -11,7 +11,7 @@ import { Loader2, Plus, Trash2, ArrowLeft, CreditCard, Upload, X } from "lucide-
 import Link from "next/link";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { v4 as uuidv4 } from "uuid";
+
 
 type PaymentMethodType = 'bank' | 'ewallet' | 'qris';
 
@@ -124,7 +124,7 @@ export default function PembayaranPage() {
     }
 
     const newMethod: PaymentMethod = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       type: formData.type as PaymentMethodType,
       bankName: formData.bankName,
       accountName: formData.accountName,
