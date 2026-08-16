@@ -216,7 +216,7 @@ export default function PembayaranPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>{formData.type === 'bank' ? 'Nama Bank (mis. BCA, BNI)' : formData.type === 'ewallet' ? 'Nama E-Wallet (mis. DANA, GoPay)' : 'Nama QRIS (mis. QRIS CUMITA)'}</Label>
+                  <Label>{formData.type === 'bank' ? 'Nama Bank' : formData.type === 'ewallet' ? 'Nama E-Wallet' : 'Nama QRIS'}</Label>
                   <Input 
                     required 
                     value={formData.bankName || ''} 
@@ -237,7 +237,7 @@ export default function PembayaranPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Atas Nama (Pemilik Rekening)</Label>
+                  <Label>Atas Nama Pemilik Rekening</Label>
                   <Input 
                     required 
                     value={formData.accountName || ''} 
@@ -248,7 +248,7 @@ export default function PembayaranPage() {
 
                 {(formData.type === 'qris' || formData.type === 'ewallet') && (
                   <div className="space-y-2 pt-2">
-                    <Label>QR Code Image (Opsional)</Label>
+                    <Label>Gambar QR Code</Label>
                     <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-6 flex flex-col items-center justify-center text-center">
                       {qrPreview ? (
                         <div className="relative">
@@ -266,7 +266,7 @@ export default function PembayaranPage() {
                           <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-3">
                             <Upload className="h-5 w-5 text-zinc-400" />
                           </div>
-                          <p className="text-sm font-medium mb-1">Unggah kode QR (Opsional)</p>
+                          <p className="text-sm font-medium mb-1">Unggah kode QR</p>
                           <p className="text-xs text-zinc-500 mb-4">PNG, JPG up to 5MB</p>
                           <Label htmlFor="qr-upload" className="cursor-pointer bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium text-sm hover:bg-primary/90 transition-colors">
                             Pilih File
