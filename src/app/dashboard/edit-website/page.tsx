@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Medal, ListOrdered, MessageSquareQuote, ShoppingBag, QrCode } from "lucide-react";
+import { Presentation, Palette, Stamp, MapPin, ChevronRight, LayoutTemplate, Megaphone, Share2, Type, Globe, HelpCircle, Medal, ListOrdered, MessageSquareQuote, ShoppingBag, QrCode, CreditCard } from "lucide-react";
 
 const editOptions = [
   {
@@ -11,6 +11,13 @@ const editOptions = [
     icon: QrCode,
     href: "/dashboard/qr-code",
     color: "bg-slate-500/10 text-slate-500 border border-slate-500/20"
+  },
+  {
+    title: "Metode Pembayaran",
+    description: "Atur rekening bank, e-wallet (seperti DANA), dan unggah QRIS toko Anda.",
+    icon: CreditCard,
+    href: "/dashboard/pembayaran",
+    color: "bg-green-500/10 text-green-500 border border-green-500/20"
   },
   {
     title: "Banner Beranda",
