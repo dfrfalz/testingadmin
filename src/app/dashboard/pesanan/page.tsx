@@ -260,9 +260,10 @@ export default function PesananPage() {
                   </tr>
                 ) : (
                   filteredOrders.map((order) => {
-                    const itemsText = Array.isArray(order.items) 
-                      ? order.items.map((i: any) => `${i.qty}x ${i.name}`).join(", ")
-                      : "-";
+                    const totalItems = Array.isArray(order.items) 
+                      ? order.items.reduce((acc: number, i: any) => acc + (i.qty || 1), 0)
+                      : 0;
+                    const itemsText = totalItems > 0 ? `${totalItems} item` : "-";
 
                     const orderDate = new Date(order.created_at).toLocaleString('id-ID', {
                       day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
